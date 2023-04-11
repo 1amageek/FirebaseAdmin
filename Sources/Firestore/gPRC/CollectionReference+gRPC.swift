@@ -22,14 +22,7 @@ extension CollectionReference {
 
     func getDocuments() async throws -> QuerySnapshot {
         let accessToken = try await Firestore.firestore().getAccessToken()
-        let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let timeout = TimeAmount.seconds(5)
-        let channel = ClientConnection
-            .usingTLSBackedByNIOSSL(on: group)
-            .withConnectionTimeout(minimum: timeout)
-            .connect(host: "firestore.googleapis.com", port: 443)
-
-        let client = Google_Firestore_V1_FirestoreNIOClient(channel: channel)
+        let client = Google_Firestore_V1_FirestoreNIOClient(channel: firestore.channel)
         let headers = HPACKHeaders([("authorization", "Bearer \(accessToken)")])
         let callOptions = CallOptions(customMetadata: headers)
         let request = Google_Firestore_V1_ListDocumentsRequest.with {

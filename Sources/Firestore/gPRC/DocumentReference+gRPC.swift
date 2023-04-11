@@ -19,14 +19,7 @@ extension DocumentReference {
 
     func getDocument() async throws -> DocumentSnapshot {
         let accessToken = try await Firestore.firestore().getAccessToken()
-        let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let timeout = TimeAmount.seconds(5)
-        let channel = ClientConnection
-            .usingTLSBackedByNIOSSL(on: group)
-            .withConnectionTimeout(minimum: timeout)
-            .connect(host: "firestore.googleapis.com", port: 443)
-
-        let client = Google_Firestore_V1_FirestoreNIOClient(channel: channel)
+        let client = Google_Firestore_V1_FirestoreNIOClient(channel: firestore.channel)
         let headers = HPACKHeaders([("authorization", "Bearer \(accessToken)")])
         let callOptions = CallOptions(customMetadata: headers)
         let request = Google_Firestore_V1_GetDocumentRequest.with {
@@ -40,14 +33,7 @@ extension DocumentReference {
     @discardableResult
     func setData(_ documentData: [String: Any], merge: Bool = false) async throws -> DocumentSnapshot {
         let accessToken = try await Firestore.firestore().getAccessToken()
-        let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let timeout = TimeAmount.seconds(5)
-        let channel = ClientConnection
-            .usingTLSBackedByNIOSSL(on: group)
-            .withConnectionTimeout(minimum: timeout)
-            .connect(host: "firestore.googleapis.com", port: 443)
-
-        let client = Google_Firestore_V1_FirestoreNIOClient(channel: channel)
+        let client = Google_Firestore_V1_FirestoreNIOClient(channel: firestore.channel)
         let headers = HPACKHeaders([("authorization", "Bearer \(accessToken)")])
         let callOptions = CallOptions(customMetadata: headers)
         if merge {
@@ -82,14 +68,7 @@ extension DocumentReference {
     @discardableResult
     func updateData(_ fields: [String: Any]) async throws -> DocumentSnapshot {
         let accessToken = try await Firestore.firestore().getAccessToken()
-        let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let timeout = TimeAmount.seconds(5)
-        let channel = ClientConnection
-            .usingTLSBackedByNIOSSL(on: group)
-            .withConnectionTimeout(minimum: timeout)
-            .connect(host: "firestore.googleapis.com", port: 443)
-
-        let client = Google_Firestore_V1_FirestoreNIOClient(channel: channel)
+        let client = Google_Firestore_V1_FirestoreNIOClient(channel: firestore.channel)
         let headers = HPACKHeaders([("authorization", "Bearer \(accessToken)")])
         let callOptions = CallOptions(customMetadata: headers)
         let updateMaskFieldPaths: [String] = Array(fields.keys)
@@ -109,13 +88,7 @@ extension DocumentReference {
 
     func delete() async throws {
         let accessToken = try await Firestore.firestore().getAccessToken()
-        let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let timeout = TimeAmount.seconds(5)
-        let channel = ClientConnection
-            .usingTLSBackedByNIOSSL(on: group)
-            .withConnectionTimeout(minimum: timeout)
-            .connect(host: "firestore.googleapis.com", port: 443)
-        let client = Google_Firestore_V1_FirestoreNIOClient(channel: channel)
+        let client = Google_Firestore_V1_FirestoreNIOClient(channel: firestore.channel)
         let headers = HPACKHeaders([("authorization", "Bearer \(accessToken)")])
         let callOptions = CallOptions(customMetadata: headers)
         let request = Google_Firestore_V1_DeleteDocumentRequest.with {

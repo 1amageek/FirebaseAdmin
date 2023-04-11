@@ -77,7 +77,7 @@ class DocumentDataVisitor: SwiftProtobuf.Visitor {
     }
 
     func visitSingularInt64Field(value: Int64, fieldNumber: Int) throws {
-        self.value = value
+        self.value = Int(value)
     }
 
     func visitSingularDoubleField(value: Double, fieldNumber: Int) throws {

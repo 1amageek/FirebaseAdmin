@@ -19,35 +19,36 @@ extension Query {
 
             query.from = [Google_Firestore_V1_StructuredQuery.CollectionSelector.with {
                 $0.collectionID = collectionID
+                $0.allDescendants = allDescendants
             }]
 
             for predicate in self.predicates {
 
                 switch predicate {
                     case .or(_):
-                        query.where = predicate.makeFilter(collectionID: collectionID)!
+                        query.where = predicate.makeFilter(database: firestore.database, collectionID: collectionID)!
                     case .and(_):
-                        query.where = predicate.makeFilter(collectionID: collectionID)!
+                        query.where = predicate.makeFilter(database: firestore.database, collectionID: collectionID)!
                     case .isEqualTo(_, _):
-                        query.where = predicate.makeFilter(collectionID: collectionID)!
+                        query.where = predicate.makeFilter(database: firestore.database, collectionID: collectionID)!
                     case .isNotEqualTo(_, _):
-                        query.where = predicate.makeFilter(collectionID: collectionID)!
+                        query.where = predicate.makeFilter(database: firestore.database, collectionID: collectionID)!
                     case .isIn(_, _):
-                        query.where = predicate.makeFilter(collectionID: collectionID)!
+                        query.where = predicate.makeFilter(database: firestore.database, collectionID: collectionID)!
                     case .isNotIn(_, _):
-                        query.where = predicate.makeFilter(collectionID: collectionID)!
+                        query.where = predicate.makeFilter(database: firestore.database, collectionID: collectionID)!
                     case .arrayContains(_, _):
-                        query.where = predicate.makeFilter(collectionID: collectionID)!
+                        query.where = predicate.makeFilter(database: firestore.database, collectionID: collectionID)!
                     case .arrayContainsAny(_, _):
-                        query.where = predicate.makeFilter(collectionID: collectionID)!
+                        query.where = predicate.makeFilter(database: firestore.database, collectionID: collectionID)!
                     case .isLessThan(_, _):
-                        query.where = predicate.makeFilter(collectionID: collectionID)!
+                        query.where = predicate.makeFilter(database: firestore.database, collectionID: collectionID)!
                     case .isGreaterThan(_, _):
-                        query.where = predicate.makeFilter(collectionID: collectionID)!
+                        query.where = predicate.makeFilter(database: firestore.database, collectionID: collectionID)!
                     case .isLessThanOrEqualTo(_, _):
-                        query.where = predicate.makeFilter(collectionID: collectionID)!
+                        query.where = predicate.makeFilter(database: firestore.database, collectionID: collectionID)!
                     case .isGreaterThanOrEqualTo(_, _):
-                        query.where = predicate.makeFilter(collectionID: collectionID)!
+                        query.where = predicate.makeFilter(database: firestore.database, collectionID: collectionID)!
                     case .orderBy(let field, let ascending):
                         query.orderBy.append(Google_Firestore_V1_StructuredQuery.Order.with {
                             $0.field = Google_Firestore_V1_StructuredQuery.FieldReference.with {
@@ -70,25 +71,25 @@ extension Query {
                             $0.direction = .descending
                         })
                     case .isEqualToDocumentID(_):
-                        query.where = predicate.makeFilter(collectionID: collectionID)!
+                        query.where = predicate.makeFilter(database: firestore.database, collectionID: collectionID)!
                     case .isNotEqualToDocumentID(_):
-                        query.where = predicate.makeFilter(collectionID: collectionID)!
+                        query.where = predicate.makeFilter(database: firestore.database, collectionID: collectionID)!
                     case .isInDocumentID(_):
-                        query.where = predicate.makeFilter(collectionID: collectionID)!
+                        query.where = predicate.makeFilter(database: firestore.database, collectionID: collectionID)!
                     case .isNotInDocumentID(_):
-                        query.where = predicate.makeFilter(collectionID: collectionID)!
+                        query.where = predicate.makeFilter(database: firestore.database, collectionID: collectionID)!
                     case .arrayContainsDocumentID(_):
-                        query.where = predicate.makeFilter(collectionID: collectionID)!
+                        query.where = predicate.makeFilter(database: firestore.database, collectionID: collectionID)!
                     case .arrayContainsAnyDocumentID(_):
-                        query.where = predicate.makeFilter(collectionID: collectionID)!
+                        query.where = predicate.makeFilter(database: firestore.database, collectionID: collectionID)!
                     case .isLessThanDocumentID(_):
-                        query.where = predicate.makeFilter(collectionID: collectionID)!
+                        query.where = predicate.makeFilter(database: firestore.database, collectionID: collectionID)!
                     case .isGreaterThanDocumentID(_):
-                        query.where = predicate.makeFilter(collectionID: collectionID)!
+                        query.where = predicate.makeFilter(database: firestore.database, collectionID: collectionID)!
                     case .isLessThanOrEqualToDocumentID(_):
-                        query.where = predicate.makeFilter(collectionID: collectionID)!
+                        query.where = predicate.makeFilter(database: firestore.database, collectionID: collectionID)!
                     case .isGreaterThanOrEqualToDocumentID(_):
-                        query.where = predicate.makeFilter(collectionID: collectionID)!
+                        query.where = predicate.makeFilter(database: firestore.database, collectionID: collectionID)!
                 }
             }
         }
@@ -96,14 +97,7 @@ extension Query {
 
     func getDocuments() async throws -> QuerySnapshot {
         let accessToken = try await Firestore.firestore().getAccessToken()
-        let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let timeout = TimeAmount.seconds(5)
-        let channel = ClientConnection
-            .usingTLSBackedByNIOSSL(on: group)
-            .withConnectionTimeout(minimum: timeout)
-            .connect(host: "firestore.googleapis.com", port: 443)
-
-        let client = Google_Firestore_V1_FirestoreAsyncClient(channel: channel)
+        let client = Google_Firestore_V1_FirestoreAsyncClient(channel: firestore.channel)
         let headers = HPACKHeaders([("authorization", "Bearer \(accessToken)")])
         let callOptions = CallOptions(customMetadata: headers)
         let request = Google_Firestore_V1_RunQueryRequest.with {

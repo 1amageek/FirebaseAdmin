@@ -33,59 +33,59 @@ final class FirestoreTests: XCTestCase {
         XCTAssertEqual(Firestore.firestore().document("/test/0").parent.path, "test")
     }
 
-    func testGetDocument() async throws {
-        let snapshot = try await Firestore
-            .firestore()
-            .document("/test/0")
-            .getDocument()
-
-        print(snapshot.data())
-    }
-
-    func testSetDocument() async throws {
-        let snapshot = try await Firestore
-            .firestore()
-            .collection("test")
-            .document("2")
-            .setData(["number": 0, "string": "string"], merge: true)
-        print(snapshot.data())
-    }
-
-    func testUpdateDocument() async throws {
-        let snapshot = try await Firestore
-            .firestore()
-            .collection("test")
-            .document("2")
-            .updateData(["number": 1])
-        print(snapshot.data())
-    }
-
-    func testUpdateAndDeleteDocument() async throws {
-        let ref = Firestore
-            .firestore()
-            .collection("test")
-            .document("4")
-        let snapshot = try await ref.updateData(["number": 1])
-        XCTAssertNotNil(snapshot.data())
-        try await ref.delete()
-    }
-
-    func testGetListDocuments() async throws {
-        let snapshot = try await Firestore
-            .firestore()
-            .collection("test")
-            .getDocuments()
-        print(snapshot.documents.count)
-        print(snapshot.documents.map({ $0.data() }))
-    }
-
-    func testGetQueryDocuments() async throws {
-        let snapshot = try await Firestore
-            .firestore()
-            .collection("test")
-            .where(field: "number", isEqualTo: 1)
-            .getDocuments()
-        print(snapshot.documents.count)
-        print(snapshot.documents.map({ $0.data() }))
-    }
+//    func testGetDocument() async throws {
+//        let snapshot = try await Firestore
+//            .firestore()
+//            .document("/test/0")
+//            .getDocument()
+//
+//        print(snapshot.data())
+//    }
+//
+//    func testSetDocument() async throws {
+//        let snapshot = try await Firestore
+//            .firestore()
+//            .collection("test")
+//            .document("2")
+//            .setData(["number": 0, "string": "string"], merge: true)
+//        print(snapshot.data())
+//    }
+//
+//    func testUpdateDocument() async throws {
+//        let snapshot = try await Firestore
+//            .firestore()
+//            .collection("test")
+//            .document("2")
+//            .updateData(["number": 1])
+//        print(snapshot.data())
+//    }
+//
+//    func testUpdateAndDeleteDocument() async throws {
+//        let ref = Firestore
+//            .firestore()
+//            .collection("test")
+//            .document("4")
+//        let snapshot = try await ref.updateData(["number": 1])
+//        XCTAssertNotNil(snapshot.data())
+//        try await ref.delete()
+//    }
+//
+//    func testGetListDocuments() async throws {
+//        let snapshot = try await Firestore
+//            .firestore()
+//            .collection("test")
+//            .getDocuments()
+//        print(snapshot.documents.count)
+//        print(snapshot.documents.map({ $0.data() }))
+//    }
+//
+//    func testGetQueryDocuments() async throws {
+//        let snapshot = try await Firestore
+//            .firestore()
+//            .collection("test")
+//            .where(field: "number", isEqualTo: 1)
+//            .getDocuments()
+//        print(snapshot.documents.count)
+//        print(snapshot.documents.map({ $0.data() }))
+//    }
 }

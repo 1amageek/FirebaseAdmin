@@ -36,16 +36,16 @@ public enum QueryPredicate {
     case and(_ filters: [QueryPredicate])
 
     // DocumentID
-    case isEqualToDocumentID(_ value: Any)
-    case isNotEqualToDocumentID(_ value: Any)
-    case isInDocumentID(_ values: [Any])
-    case isNotInDocumentID( _ values: [Any])
-    case arrayContainsDocumentID(_ value: Any)
-    case arrayContainsAnyDocumentID(_ values: [Any])
-    case isLessThanDocumentID(_ value: Any)
-    case isGreaterThanDocumentID(_ value: Any)
-    case isLessThanOrEqualToDocumentID(_ value: Any)
-    case isGreaterThanOrEqualToDocumentID(_ value: Any)
+    case isEqualToDocumentID(_ value: String)
+    case isNotEqualToDocumentID(_ value: String)
+    case isInDocumentID(_ values: [String])
+    case isNotInDocumentID( _ values: [String])
+    case arrayContainsDocumentID(_ value: String)
+    case arrayContainsAnyDocumentID(_ values: [String])
+    case isLessThanDocumentID(_ value: String)
+    case isGreaterThanDocumentID(_ value: String)
+    case isLessThanOrEqualToDocumentID(_ value: String)
+    case isGreaterThanOrEqualToDocumentID(_ value: String)
 
     var type: PredicateType {
         switch self {

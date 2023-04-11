@@ -15,6 +15,8 @@ public struct Query {
 
     public var collectionID: String
 
+    public var allDescendants: Bool
+
     public var predicates: [QueryPredicate]
 
     public var path: String {
@@ -25,9 +27,10 @@ public struct Query {
         }
     }
 
-    init(_ firestore: Firestore, parentPath: String?, collectionID: String, predicates: [QueryPredicate]) {
+    init(_ firestore: Firestore, parentPath: String?, collectionID: String, allDescendants: Bool = false, predicates: [QueryPredicate]) {
         self.firestore = firestore
         self.parentPath = parentPath
+        self.allDescendants = allDescendants
         self.collectionID = collectionID
         self.predicates = predicates
     }
@@ -49,13 +52,13 @@ extension Query {
     public func or(_ filters: [QueryPredicate]) -> Query {
         var predicates: [QueryPredicate] = []
         predicates.append(.or(filters))
-        return .init(firestore, parentPath: parentPath, collectionID: collectionID, predicates: predicates)
+        return .init(firestore, parentPath: parentPath, collectionID: collectionID, allDescendants: allDescendants, predicates: predicates)
     }
 
     public func and(_ filters: [QueryPredicate]) -> Query {
         var predicates: [QueryPredicate] = []
         predicates.append(.and(filters))
-        return .init(firestore, parentPath: parentPath, collectionID: collectionID, predicates: predicates)
+        return .init(firestore, parentPath: parentPath, collectionID: collectionID, allDescendants: allDescendants, predicates: predicates)
     }
 }
 
@@ -85,103 +88,103 @@ extension Query {
 
     public func `where`(field: String, isEqualTo value: Any) -> Self {
         let predicates = append(.isEqualTo(field, value))
-        return .init(firestore, parentPath: parentPath, collectionID: collectionID, predicates: predicates)
+        return .init(firestore, parentPath: parentPath, collectionID: collectionID, allDescendants: allDescendants, predicates: predicates)
     }
 
     public func `where`(field: String, isNotEqualTo value: Any) -> Self {
         let predicates = append(.isNotEqualTo(field, value))
-        return .init(firestore, parentPath: parentPath, collectionID: collectionID, predicates: predicates)
+        return .init(firestore, parentPath: parentPath, collectionID: collectionID, allDescendants: allDescendants, predicates: predicates)
     }
 
     public func `where`(field: String, isLessThan value: Any) -> Self {
         let predicates = append(.isLessThan(field, value))
-        return .init(firestore, parentPath: parentPath, collectionID: collectionID, predicates: predicates)
+        return .init(firestore, parentPath: parentPath, collectionID: collectionID, allDescendants: allDescendants, predicates: predicates)
     }
 
     public func `where`(field: String, isLessThanOrEqualTo value: Any) -> Self {
         let predicates = append(.isLessThanOrEqualTo(field, value))
-        return .init(firestore, parentPath: parentPath, collectionID: collectionID, predicates: predicates)
+        return .init(firestore, parentPath: parentPath, collectionID: collectionID, allDescendants: allDescendants, predicates: predicates)
     }
 
     public func `where`(field: String, isGreaterThan value: Any) -> Self {
         let predicates = append(.isGreaterThan(field, value))
-        return .init(firestore, parentPath: parentPath, collectionID: collectionID, predicates: predicates)
+        return .init(firestore, parentPath: parentPath, collectionID: collectionID, allDescendants: allDescendants, predicates: predicates)
     }
 
     public func `where`(field: String, isGreaterThanOrEqualTo value: Any) -> Self {
         let predicates = append(.isGreaterThanOrEqualTo(field, value))
-        return .init(firestore, parentPath: parentPath, collectionID: collectionID, predicates: predicates)
+        return .init(firestore, parentPath: parentPath, collectionID: collectionID, allDescendants: allDescendants, predicates: predicates)
     }
 
     public func `where`(field: String, arrayContains value: Any) -> Self {
         let predicates = append(.arrayContains(field, value))
-        return .init(firestore, parentPath: parentPath, collectionID: collectionID, predicates: predicates)
+        return .init(firestore, parentPath: parentPath, collectionID: collectionID, allDescendants: allDescendants, predicates: predicates)
     }
 
     public func `where`(field: String, arrayContainsAny value: [Any]) -> Self {
         let predicates = append(.arrayContainsAny(field, value))
-        return .init(firestore, parentPath: parentPath, collectionID: collectionID, predicates: predicates)
+        return .init(firestore, parentPath: parentPath, collectionID: collectionID, allDescendants: allDescendants, predicates: predicates)
     }
 
     public func `where`(field: String, in value: [Any]) -> Self {
         let predicates = append(.isIn(field, value))
-        return .init(firestore, parentPath: parentPath, collectionID: collectionID, predicates: predicates)
+        return .init(firestore, parentPath: parentPath, collectionID: collectionID, allDescendants: allDescendants, predicates: predicates)
     }
 
     public func `where`(field: String, notIn value: [Any]) -> Self {
         let predicates = append(.isNotIn(field, value))
-        return .init(firestore, parentPath: parentPath, collectionID: collectionID, predicates: predicates)
+        return .init(firestore, parentPath: parentPath, collectionID: collectionID, allDescendants: allDescendants, predicates: predicates)
     }
 
     // DocumentID
-    public func `where`(isEqualTo value: Any) -> Self {
+    public func `where`(isEqualTo value: String) -> Self {
         let predicates = append(.isEqualToDocumentID(value))
-        return .init(firestore, parentPath: parentPath, collectionID: collectionID, predicates: predicates)
+        return .init(firestore, parentPath: parentPath, collectionID: collectionID, allDescendants: allDescendants, predicates: predicates)
     }
 
-    public func `where`(isNotEqualTo value: Any) -> Self {
+    public func `where`(isNotEqualTo value: String) -> Self {
         let predicates = append(.isNotEqualToDocumentID(value))
-        return .init(firestore, parentPath: parentPath, collectionID: collectionID, predicates: predicates)
+        return .init(firestore, parentPath: parentPath, collectionID: collectionID, allDescendants: allDescendants, predicates: predicates)
     }
 
-    public func `where`(isLessThan value: Any) -> Self {
+    public func `where`(isLessThan value: String) -> Self {
         let predicates = append(.isLessThanDocumentID(value))
-        return .init(firestore, parentPath: parentPath, collectionID: collectionID, predicates: predicates)
+        return .init(firestore, parentPath: parentPath, collectionID: collectionID, allDescendants: allDescendants, predicates: predicates)
     }
 
-    public func `where`(isLessThanOrEqualTo value: Any) -> Self {
+    public func `where`(isLessThanOrEqualTo value: String) -> Self {
         let predicates = append(.isLessThanOrEqualToDocumentID(value))
-        return .init(firestore, parentPath: parentPath, collectionID: collectionID, predicates: predicates)
+        return .init(firestore, parentPath: parentPath, collectionID: collectionID, allDescendants: allDescendants, predicates: predicates)
     }
 
-    public func `where`(isGreaterThan value: Any) -> Self {
+    public func `where`(isGreaterThan value: String) -> Self {
         let predicates = append(.isGreaterThanDocumentID(value))
-        return .init(firestore, parentPath: parentPath, collectionID: collectionID, predicates: predicates)
+        return .init(firestore, parentPath: parentPath, collectionID: collectionID, allDescendants: allDescendants, predicates: predicates)
     }
 
-    public func `where`(isGreaterThanOrEqualTo value: Any) -> Self {
+    public func `where`(isGreaterThanOrEqualTo value: String) -> Self {
         let predicates = append(.isGreaterThanOrEqualToDocumentID(value))
-        return .init(firestore, parentPath: parentPath, collectionID: collectionID, predicates: predicates)
+        return .init(firestore, parentPath: parentPath, collectionID: collectionID, allDescendants: allDescendants, predicates: predicates)
     }
 
-    public func `where`(arrayContains value: Any) -> Self {
+    public func `where`(arrayContains value: String) -> Self {
         let predicates = append(.arrayContainsDocumentID(value))
-        return .init(firestore, parentPath: parentPath, collectionID: collectionID, predicates: predicates)
+        return .init(firestore, parentPath: parentPath, collectionID: collectionID, allDescendants: allDescendants, predicates: predicates)
     }
 
-    public func `where`(arrayContainsAny value: [Any]) -> Self {
+    public func `where`(arrayContainsAny value: [String]) -> Self {
         let predicates = append(.arrayContainsAnyDocumentID(value))
-        return .init(firestore, parentPath: parentPath, collectionID: collectionID, predicates: predicates)
+        return .init(firestore, parentPath: parentPath, collectionID: collectionID, allDescendants: allDescendants, predicates: predicates)
     }
 
-    public func `where`(in value: [Any]) -> Self {
+    public func `where`(in value: [String]) -> Self {
         let predicates = append(.isInDocumentID(value))
-        return .init(firestore, parentPath: parentPath, collectionID: collectionID, predicates: predicates)
+        return .init(firestore, parentPath: parentPath, collectionID: collectionID, allDescendants: allDescendants, predicates: predicates)
     }
 
-    public func `where`(notIn value: [Any]) -> Self {
+    public func `where`(notIn value: [String]) -> Self {
         let predicates = append(.isNotInDocumentID(value))
-        return .init(firestore, parentPath: parentPath, collectionID: collectionID, predicates: predicates)
+        return .init(firestore, parentPath: parentPath, collectionID: collectionID, allDescendants: allDescendants, predicates: predicates)
     }
 }
 
@@ -191,13 +194,13 @@ extension Query {
     public func limit(to value: Int) -> Self {
         var predicates = self.predicates
         predicates.append(.limitTo(value))
-        return .init(firestore, parentPath: parentPath, collectionID: collectionID, predicates: predicates)
+        return .init(firestore, parentPath: parentPath, collectionID: collectionID, allDescendants: allDescendants, predicates: predicates)
     }
 
     public func limit(toLast value: Int) -> Self {
         var predicates = self.predicates
         predicates.append(.limitToLast(value))
-        return .init(firestore, parentPath: parentPath, collectionID: collectionID, predicates: predicates)
+        return .init(firestore, parentPath: parentPath, collectionID: collectionID, allDescendants: allDescendants, predicates: predicates)
     }
 }
 
@@ -207,7 +210,7 @@ extension Query {
     public func order(by field: String, descending value: Bool) -> Self {
         var predicates = self.predicates
         predicates.append(.orderBy(field, value))
-        return .init(firestore, parentPath: parentPath, collectionID: collectionID, predicates: predicates)
+        return .init(firestore, parentPath: parentPath, collectionID: collectionID, allDescendants: allDescendants, predicates: predicates)
     }
 }
 
