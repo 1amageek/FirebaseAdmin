@@ -11,13 +11,13 @@ public struct Query {
 
     public var firestore: Firestore
 
-    private var parentPath: String?
+    var parentPath: String?
 
     public var collectionID: String
 
-    public var allDescendants: Bool
+    var allDescendants: Bool
 
-    public var predicates: [QueryPredicate]
+    var predicates: [QueryPredicate]
 
     public var path: String {
         if let parentPath {
