@@ -9,7 +9,6 @@ import Foundation
 
 extension QueryPredicate {
 
-
     func makeFilter(database: Database, collectionID: String) -> Google_Firestore_V1_StructuredQuery.Filter? {
         switch self {
             case .or(let predicates):

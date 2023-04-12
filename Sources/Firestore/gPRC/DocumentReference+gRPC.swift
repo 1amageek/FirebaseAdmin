@@ -17,7 +17,7 @@ extension DocumentReference {
         return "\(firestore.database.path)/\(path)".normalized
     }
 
-    func getDocument() async throws -> DocumentSnapshot {
+    public func getDocument() async throws -> DocumentSnapshot {
         let accessToken = try await Firestore.firestore().getAccessToken()
         let client = Google_Firestore_V1_FirestoreNIOClient(channel: firestore.channel)
         let headers = HPACKHeaders([("authorization", "Bearer \(accessToken)")])
@@ -30,7 +30,7 @@ extension DocumentReference {
         return DocumentSnapshot(document: document, documentReference: self)
     }
 
-    func setData(_ documentData: [String: Any], merge: Bool = false) async throws {
+    public func setData(_ documentData: [String: Any], merge: Bool = false) async throws {
         let documentData = DocumentData(data: documentData)
         let accessToken = try await Firestore.firestore().getAccessToken()
         let client = Google_Firestore_V1_FirestoreAsyncClient(channel: firestore.channel)
@@ -57,7 +57,7 @@ extension DocumentReference {
         _ = try await client.commit(commitRequest, callOptions: callOptions)
     }
 
-    func updateData(_ fields: [String: Any]) async throws {
+    public func updateData(_ fields: [String: Any]) async throws {
         let documentData = DocumentData(data: fields)
         let accessToken = try await Firestore.firestore().getAccessToken()
         let client = Google_Firestore_V1_FirestoreAsyncClient(channel: firestore.channel)
@@ -82,7 +82,7 @@ extension DocumentReference {
         _ = try await client.commit(commitRequest, callOptions: callOptions)
     }
 
-    func delete() async throws {
+    public func delete() async throws {
         let accessToken = try await Firestore.firestore().getAccessToken()
         let client = Google_Firestore_V1_FirestoreNIOClient(channel: firestore.channel)
         let headers = HPACKHeaders([("authorization", "Bearer \(accessToken)")])
