@@ -9,7 +9,7 @@ final class FirestoreTests: XCTestCase {
     }
 
     class func loadServiceAccount(from jsonFile: String) throws -> ServiceAccount {
-        guard let path = Bundle.module.path(forResource: jsonFile, ofType: "json")  else {
+        guard let path = Bundle.main.path(forResource: jsonFile, ofType: "json")  else {
             throw NSError(domain: "FileNotFoundError", code: 404, userInfo: [NSLocalizedDescriptionKey: "JSON file not found"])
         }
         do {
