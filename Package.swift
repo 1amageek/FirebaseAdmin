@@ -38,9 +38,7 @@ let package = Package(
             ]),
         .testTarget(
             name: "FirestoreTests",
-            dependencies: ["Firestore"],
-            resources: [
-                .copy("ServiceAccount.json")
-            ]),
+            dependencies: ["Firestore"]
+        ),
     ]
 )

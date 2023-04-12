@@ -19,7 +19,14 @@ Please copy this file to the `FirestoreTests` directory.
 
 3. Open the project in Xcode and select the `FirestoreTests` target.
 
-
+```Package.swift
+        .testTarget(
+            name: "FirestoreTests",
+            dependencies: ["Firestore"],
+            resources: [
+                .copy("ServiceAccount.json")
+            ]),
+```
 
 ## Output latest API
 
