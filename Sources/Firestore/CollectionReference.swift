@@ -27,9 +27,9 @@ public struct CollectionReference {
     /// The path of the collection reference.
     public var path: String {
         if let parentPath {
-            return "\(parentPath)/\(collectionID)".standardized
+            return "\(parentPath)/\(collectionID)".normalized
         } else {
-            return "\(collectionID)".standardized
+            return "\(collectionID)".normalized
         }
     }
 

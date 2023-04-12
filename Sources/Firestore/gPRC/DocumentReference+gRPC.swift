@@ -14,7 +14,7 @@ import NIOHPACK
 extension DocumentReference {
 
     var name: String {
-        return "\(firestore.database.path)/\(path)".standardized
+        return "\(firestore.database.path)/\(path)".normalized
     }
 
     func getDocument() async throws -> DocumentSnapshot {

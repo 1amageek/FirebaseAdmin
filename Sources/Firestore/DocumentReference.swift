@@ -24,7 +24,7 @@ public struct DocumentReference {
     public var documentID: String
 
     /// The path of the document reference.
-    public var path: String { "\(parentPath)/\(documentID)".standardized }
+    public var path: String { "\(parentPath)/\(documentID)".normalized }
 
     /**
      Initializes a `DocumentReference` instance with the specified Firestore instance, parent path, and document ID.

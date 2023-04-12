@@ -21,9 +21,9 @@ public struct Query {
 
     public var path: String {
         if let parentPath {
-            return "\(parentPath)/\(collectionID)".standardized
+            return "\(parentPath)/\(collectionID)".normalized
         } else {
-            return "\(collectionID)".standardized
+            return "\(collectionID)".normalized
         }
     }
 
@@ -40,9 +40,9 @@ extension Query {
     
     var name: String {
         if let parentPath {
-            return "\(firestore.database.path)/\(parentPath)".standardized
+            return "\(firestore.database.path)/\(parentPath)".normalized
         }
-        return "\(firestore.database.path)".standardized
+        return "\(firestore.database.path)".normalized
     }
 }
 

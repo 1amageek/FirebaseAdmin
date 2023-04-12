@@ -9,7 +9,7 @@ import Foundation
 
 extension String {
 
-    var standardized: String {
+    var normalized: String {
         self
             .split(separator: "/")
             .filter({ !$0.isEmpty })

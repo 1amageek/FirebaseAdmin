@@ -15,9 +15,9 @@ extension CollectionReference {
 
     var name: String {
         if let parentPath {
-            return "\(firestore.database.path)/\(parentPath)".standardized
+            return "\(firestore.database.path)/\(parentPath)".normalized
         }
-        return "\(firestore.database.path)".standardized
+        return "\(firestore.database.path)".normalized
     }
 
     func getDocuments() async throws -> QuerySnapshot {
