@@ -17,5 +17,7 @@ struct Database {
         self.projectId = projectId
     }
 
+    var database: String { "projects/\(projectId)/databases/\(databaseId)" }
+
     var path: String { "projects/\(projectId)/databases/\(databaseId)/documents" }
 }

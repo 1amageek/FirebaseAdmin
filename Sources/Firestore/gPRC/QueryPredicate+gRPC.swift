@@ -41,7 +41,7 @@ extension QueryPredicate {
                                 $0.fieldPath = field
                             }
                             $0.op = .equal
-                            $0.value = documentValue(value)
+                            $0.value = DocumentData.getValue(value)!
                         }
                     }
                 }
@@ -60,7 +60,7 @@ extension QueryPredicate {
                                 $0.fieldPath = field
                             }
                             $0.op = .notEqual
-                            $0.value = documentValue(value)
+                            $0.value = DocumentData.getValue(value)!
                         }
                     }
                 }
@@ -71,7 +71,7 @@ extension QueryPredicate {
                             $0.fieldPath = field
                         }
                         $0.op = .in
-                        $0.value = documentValue(value)
+                        $0.value = DocumentData.getValue(value)!
                     }
                 }
             case .isNotIn(let field, let value):
@@ -81,7 +81,7 @@ extension QueryPredicate {
                             $0.fieldPath = field
                         }
                         $0.op = .notIn
-                        $0.value = documentValue(value)
+                        $0.value = DocumentData.getValue(value)!
                     }
                 }
             case .arrayContains(let field, let value):
@@ -91,7 +91,7 @@ extension QueryPredicate {
                             $0.fieldPath = field
                         }
                         $0.op = .arrayContains
-                        $0.value = documentValue(value)
+                        $0.value = DocumentData.getValue(value)!
                     }
                 }
             case .arrayContainsAny(let field, let value):
@@ -101,7 +101,7 @@ extension QueryPredicate {
                             $0.fieldPath = field
                         }
                         $0.op = .arrayContainsAny
-                        $0.value = documentValue(value)
+                        $0.value = DocumentData.getValue(value)!
                     }
                 }
             case .isLessThan(let field, let value):
@@ -111,7 +111,7 @@ extension QueryPredicate {
                             $0.fieldPath = field
                         }
                         $0.op = .lessThan
-                        $0.value = documentValue(value)
+                        $0.value = DocumentData.getValue(value)!
                     }
                 }
             case .isGreaterThan(let field, let value):
@@ -121,7 +121,7 @@ extension QueryPredicate {
                             $0.fieldPath = field
                         }
                         $0.op = .greaterThan
-                        $0.value = documentValue(value)
+                        $0.value = DocumentData.getValue(value)!
                     }
                 }
             case .isLessThanOrEqualTo(let field, let value):
@@ -131,7 +131,7 @@ extension QueryPredicate {
                             $0.fieldPath = field
                         }
                         $0.op = .lessThanOrEqual
-                        $0.value = documentValue(value)
+                        $0.value = DocumentData.getValue(value)!
                     }
                 }
             case .isGreaterThanOrEqualTo(let field, let value):
@@ -141,7 +141,7 @@ extension QueryPredicate {
                             $0.fieldPath = field
                         }
                         $0.op = .greaterThanOrEqual
-                        $0.value = documentValue(value)
+                        $0.value = DocumentData.getValue(value)!
                     }
                 }
             case .isEqualToDocumentID(let documentID):

@@ -7,7 +7,6 @@
 
 import Foundation
 import SwiftProtobuf
-import CoreLocation
 
 class DocumentDataVisitor: SwiftProtobuf.Visitor {
 
@@ -15,36 +14,36 @@ class DocumentDataVisitor: SwiftProtobuf.Visitor {
 
     func visitSingularMessageField<M>(value: M, fieldNumber: Int) throws where M : SwiftProtobuf.Message {
         switch value {
-        case let v as Google_Protobuf_Timestamp:
-            self.value = Date(timeIntervalSince1970: TimeInterval(v.seconds))
-        case let v as Google_Type_LatLng:
-            self.value = CLLocationCoordinate2D(latitude: v.latitude, longitude: v.longitude)
-        case let v as Google_Firestore_V1_Value:
-            var nestedVisitor = DocumentDataVisitor()
-            try v.traverse(visitor: &nestedVisitor)
-            self.value = nestedVisitor.value
-        case let v as Google_Firestore_V1_ArrayValue:
-            var nestedVisitor = DocumentDataVisitor()
-            var array: [Any] = []
-            for item in v.values {
-                try item.traverse(visitor: &nestedVisitor)
-                if let value = nestedVisitor.value {
-                    array.append(value)
+            case let v as Google_Protobuf_Timestamp:
+                self.value = Timestamp(seconds: v.seconds, nanos: v.nanos)
+            case let v as Google_Type_LatLng:
+                self.value = GeoPoint(latitude: v.latitude, longitude: v.longitude)
+            case let v as Google_Firestore_V1_Value:
+                var nestedVisitor = DocumentDataVisitor()
+                try v.traverse(visitor: &nestedVisitor)
+                self.value = nestedVisitor.value
+            case let v as Google_Firestore_V1_ArrayValue:
+                var nestedVisitor = DocumentDataVisitor()
+                var array: [Any] = []
+                for item in v.values {
+                    try item.traverse(visitor: &nestedVisitor)
+                    if let value = nestedVisitor.value {
+                        array.append(value)
+                    }
                 }
-            }
-            self.value = array
-        case let v as Google_Firestore_V1_MapValue:
-            var nestedVisitor = DocumentDataVisitor()
-            var dictionary: [String: Any] = [:]
-            for (key, item) in v.fields {
-                try item.traverse(visitor: &nestedVisitor)
-                if let value = nestedVisitor.value {
-                    dictionary[key] = value
+                self.value = array
+            case let v as Google_Firestore_V1_MapValue:
+                var nestedVisitor = DocumentDataVisitor()
+                var dictionary: [String: Any] = [:]
+                for (key, item) in v.fields {
+                    try item.traverse(visitor: &nestedVisitor)
+                    if let value = nestedVisitor.value {
+                        dictionary[key] = value
+                    }
                 }
-            }
-            self.value = dictionary
-        default:
-            break
+                self.value = dictionary
+            default:
+                break
         }
     }
 

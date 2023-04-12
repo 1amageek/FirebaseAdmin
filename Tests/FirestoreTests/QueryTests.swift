@@ -8,23 +8,23 @@ final class QueryTests: XCTestCase {
         FirebaseApp.initialize(serviceAccount: serviceAccount)
     }
 
-//    override func setUp() async throws {
-//        let collection = Firestore.firestore().collection("test")
-//
-//        // Prepare test data
-//        for i in 1...39 {
-//            try await collection.document("doc\(i)").setData(["number": i, "documentID": "doc\(i)"])
-//        }
-//    }
+    override func setUp() async throws {
+        let collection = Firestore.firestore().collection("test")
 
-//    override func tearDown() async throws {
-//        let firestore = Firestore.firestore()
-//        let collection = firestore.collection("test")
-//        let snapshot = try await collection.getDocuments()
-//        for document in snapshot.documents {
-//            try await document.documentReference.delete()
-//        }
-//    }
+        // Prepare test data
+        for i in 1...39 {
+            try await collection.document("doc\(i)").setData(["number": i, "documentID": "doc\(i)"])
+        }
+    }
+
+    override func tearDown() async throws {
+        let firestore = Firestore.firestore()
+        let collection = firestore.collection("test")
+        let snapshot = try await collection.getDocuments()
+        for document in snapshot.documents {
+            try await document.documentReference.delete()
+        }
+    }
 
     class func loadServiceAccount(from jsonFile: String) throws -> ServiceAccount {
         guard let path = Bundle.module.path(forResource: jsonFile, ofType: "json")  else {

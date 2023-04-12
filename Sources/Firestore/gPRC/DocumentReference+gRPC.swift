@@ -30,60 +30,56 @@ extension DocumentReference {
         return DocumentSnapshot(document: document, documentReference: self)
     }
 
-    @discardableResult
-    func setData(_ documentData: [String: Any], merge: Bool = false) async throws -> DocumentSnapshot {
+    func setData(_ documentData: [String: Any], merge: Bool = false) async throws {
+        let documentData = DocumentData(data: documentData)
         let accessToken = try await Firestore.firestore().getAccessToken()
-        let client = Google_Firestore_V1_FirestoreNIOClient(channel: firestore.channel)
+        let client = Google_Firestore_V1_FirestoreAsyncClient(channel: firestore.channel)
         let headers = HPACKHeaders([("authorization", "Bearer \(accessToken)")])
         let callOptions = CallOptions(customMetadata: headers)
-        if merge {
-            let updateMaskFieldPaths: [String] = Array(documentData.keys)
-            let request = Google_Firestore_V1_UpdateDocumentRequest.with {
-                $0.document = Google_Firestore_V1_Document.with {
-                    $0.name = name
-                    $0.fields = documentData.toFields()
+        let commitRequest = Google_Firestore_V1_CommitRequest.with {
+            $0.database = firestore.database.database
+            $0.writes = [
+                Google_Firestore_V1_Write.with {
+                    $0.update.name = name
+                    $0.update.fields = documentData.getFields()
+                    if merge {
+                        $0.updateMask = Google_Firestore_V1_DocumentMask.with {
+                            $0.fieldPaths = documentData.keys
+                        }
+                    }
+                    let transforms = documentData.getFieldTransforms(documentPath: name)
+                    if !transforms.isEmpty {
+                        $0.updateTransforms = transforms
+                    }
                 }
-                $0.updateMask = Google_Firestore_V1_DocumentMask.with {
-                    $0.fieldPaths = updateMaskFieldPaths
-                }
-            }
-            let call = client.updateDocument(request, callOptions: callOptions)
-            let document = try await call.response.get()
-            return DocumentSnapshot(document: document, documentReference: self)
-        } else {
-            let request = Google_Firestore_V1_CreateDocumentRequest.with {
-                $0.parent = parent.name
-                $0.collectionID = parent.collectionID
-                $0.documentID = documentID
-                $0.document = Google_Firestore_V1_Document.with {
-                    $0.fields = documentData.toFields()
-                }
-            }
-            let call = client.createDocument(request, callOptions: callOptions)
-            let document = try await call.response.get()
-            return DocumentSnapshot(document: document, documentReference: self)
+            ]
         }
+        _ = try await client.commit(commitRequest, callOptions: callOptions)
     }
 
-    @discardableResult
-    func updateData(_ fields: [String: Any]) async throws -> DocumentSnapshot {
+    func updateData(_ fields: [String: Any]) async throws {
+        let documentData = DocumentData(data: fields)
         let accessToken = try await Firestore.firestore().getAccessToken()
-        let client = Google_Firestore_V1_FirestoreNIOClient(channel: firestore.channel)
+        let client = Google_Firestore_V1_FirestoreAsyncClient(channel: firestore.channel)
         let headers = HPACKHeaders([("authorization", "Bearer \(accessToken)")])
         let callOptions = CallOptions(customMetadata: headers)
-        let updateMaskFieldPaths: [String] = Array(fields.keys)
-        let request = Google_Firestore_V1_UpdateDocumentRequest.with {
-            $0.document = Google_Firestore_V1_Document.with {
-                $0.name = name
-                $0.fields = fields.toFields()
-            }
-            $0.updateMask = Google_Firestore_V1_DocumentMask.with {
-                $0.fieldPaths = updateMaskFieldPaths
-            }
+        let commitRequest = Google_Firestore_V1_CommitRequest.with {
+            $0.database = firestore.database.database
+            $0.writes = [
+                Google_Firestore_V1_Write.with {
+                    $0.update.name = name
+                    $0.update.fields = documentData.getFields()
+                    $0.updateMask = Google_Firestore_V1_DocumentMask.with {
+                        $0.fieldPaths = documentData.keys
+                    }
+                    let transforms = documentData.getFieldTransforms(documentPath: name)
+                    if !transforms.isEmpty {
+                        $0.updateTransforms = transforms
+                    }
+                }
+            ]
         }
-        let call = client.updateDocument(request, callOptions: callOptions)
-        let document = try await call.response.get()
-        return DocumentSnapshot(document: document, documentReference: self)
+        _ = try await client.commit(commitRequest, callOptions: callOptions)
     }
 
     func delete() async throws {
