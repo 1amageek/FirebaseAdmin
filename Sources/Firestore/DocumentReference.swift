@@ -14,28 +14,28 @@ import Foundation
  */
 public struct DocumentReference {
 
-    /// The `Firestore` instance associated with the document reference.
-    public var firestore: Firestore
-
+    /// The `Database` instance associated with the document reference.
+    var database: Database
+    
     /// The parent path of the document reference.
     private var parentPath: String
-
+    
     /// The ID of the document reference.
     public var documentID: String
-
+    
     /// The path of the document reference.
     public var path: String { "\(parentPath)/\(documentID)".normalized }
-
+    
     /**
-     Initializes a `DocumentReference` instance with the specified Firestore instance, parent path, and document ID.
-
+     Initializes a new `DocumentReference` instance with the specified `Database` instance, parent path, and document ID.
+     
      - Parameters:
-        - firestore: The `Firestore` instance associated with the document reference.
-        - parentPath: The parent path of the document reference.
-        - documentID: The ID of the document reference.
+     - database: The `Database` instance associated with the document reference.
+     - parentPath: The parent path of the document reference.
+     - documentID: The ID of the document reference.
      */
-    init(_ firestore: Firestore, parentPath: String, documentID: String) {
-        self.firestore = firestore
+    init(_ database: Database, parentPath: String, documentID: String) {
+        self.database = database
         self.parentPath = parentPath
         self.documentID = documentID
     }
@@ -47,7 +47,7 @@ public struct DocumentReference {
             .filter({ !$0.isEmpty })
         let parentPath = components.dropLast(1).joined(separator: "/")
         let collectionID = String(components.last!)
-        return CollectionReference(firestore, parentPath: parentPath, collectionID: collectionID)
+        return CollectionReference(database, parentPath: parentPath, collectionID: collectionID)
     }
 
     /**
@@ -67,6 +67,43 @@ public struct DocumentReference {
         if components.count.isMultiple(of: 2) {
             fatalError("Invalid collection ID. \(collectionID).")
         }
-        return CollectionReference(firestore, parentPath: path, collectionID: collectionID)
+        return CollectionReference(database, parentPath: path, collectionID: collectionID)
+    }
+}
+
+extension DocumentReference: Hashable {
+
+    public static func == (lhs: DocumentReference, rhs: DocumentReference) -> Bool {
+        lhs.name == rhs.name
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(name)
+    }
+}
+
+extension DocumentReference: Codable {
+
+    enum CodingKeys: CodingKey {
+        case database
+        case path
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(database.database, forKey: .database)
+        try container.encode(path, forKey: .path)
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let database = try container.decode(Database.self, forKey: .database)
+        let path = try container.decode(String.self, forKey: .path)
+        let components = path
+            .split(separator: "/")
+            .filter({ !$0.isEmpty })
+        let documentID = String(components.last!)
+        let parentPath = components.dropLast(0).joined(separator: "/")
+        self.init(database, parentPath: parentPath, documentID: documentID)
     }
 }

@@ -8,27 +8,38 @@
 import Foundation
 
 /**
- A struct that represents a Firestore collection group.
+ A group of collections in a Firestore database.
 
- The `CollectionGroup` struct provides methods for querying documents across all collections with the same ID. It requires a `Firestore` instance to be initialized.
+ Use a `CollectionGroup` instance to perform queries across multiple collections that share the same subcollection name.
+
+ For example, consider a database with the following collections:
+
+ - `users/{userID}/posts/{postID}`
+ - `groups/{groupID}/posts/{postID}`
+ - `companies/{companyID}/employees/{employeeID}/projects/{projectID}/tasks/{taskID}`
+
+ Each collection has a subcollection named `posts`. You can use a `CollectionGroup` instance to query all posts across all collections with the subcollection name `posts`.
+
+ You must specify a `Firestore` instance and a group ID to create a `CollectionGroup` instance.
+
  */
 public struct CollectionGroup {
 
-    /// The `Firestore` instance associated with the collection group.
-    public var firestore: Firestore
+    /// The Firestore instance associated with the collection group.
+    var database: Database
 
     /// The ID of the collection group.
     public var groupID: String
 
     /**
-     Initializes a `CollectionGroup` instance with the specified Firestore instance and group ID.
+     Initializes a new `CollectionGroup` instance with the specified Firestore instance and group ID.
 
      - Parameters:
-        - firestore: The `Firestore` instance associated with the collection group.
+        - database: The `Firestore` instance associated with the collection group.
         - groupID: The ID of the collection group.
      */
-    init(_ firestore: Firestore, groupID: String) {
-        self.firestore = firestore
+    init(_ database: Database, groupID: String) {
+        self.database = database
         self.groupID = groupID
     }
 }

@@ -15,13 +15,14 @@ extension CollectionReference {
 
     var name: String {
         if let parentPath {
-            return "\(firestore.database.path)/\(parentPath)".normalized
+            return "\(database.path)/\(parentPath)".normalized
         }
-        return "\(firestore.database.path)".normalized
+        return "\(database.path)".normalized
     }
 
     public func getDocuments() async throws -> QuerySnapshot {
-        let accessToken = try await Firestore.firestore().getAccessToken()
+        let firestore = Firestore.firestore()
+        let accessToken = try await firestore.getAccessToken()
         let client = Google_Firestore_V1_FirestoreNIOClient(channel: firestore.channel)
         let headers = HPACKHeaders([("authorization", "Bearer \(accessToken)")])
         let callOptions = CallOptions(customMetadata: headers)

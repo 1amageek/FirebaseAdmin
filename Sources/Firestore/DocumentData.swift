@@ -42,6 +42,8 @@ struct DocumentData {
             value.stringValue = stringValue
         } else if let dataValue = anyValue as? Data {
             value.bytesValue = dataValue
+        } else if let referenceValue = anyValue as? DocumentReference {
+            value.referenceValue = referenceValue.name
         } else if let timestampValue = anyValue as? Timestamp {
             value.timestampValue = SwiftProtobuf.Google_Protobuf_Timestamp.with {
                 $0.seconds = timestampValue.seconds

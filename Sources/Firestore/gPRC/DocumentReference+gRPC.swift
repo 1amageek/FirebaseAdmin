@@ -14,11 +14,12 @@ import NIOHPACK
 extension DocumentReference {
 
     var name: String {
-        return "\(firestore.database.path)/\(path)".normalized
+        return "\(database.path)/\(path)".normalized
     }
 
     public func getDocument() async throws -> DocumentSnapshot {
-        let accessToken = try await Firestore.firestore().getAccessToken()
+        let firestore = Firestore.firestore()
+        let accessToken = try await firestore.getAccessToken()
         let client = Google_Firestore_V1_FirestoreNIOClient(channel: firestore.channel)
         let headers = HPACKHeaders([("authorization", "Bearer \(accessToken)")])
         let callOptions = CallOptions(customMetadata: headers)
@@ -32,7 +33,8 @@ extension DocumentReference {
 
     public func setData(_ documentData: [String: Any], merge: Bool = false) async throws {
         let documentData = DocumentData(data: documentData)
-        let accessToken = try await Firestore.firestore().getAccessToken()
+        let firestore = Firestore.firestore()
+        let accessToken = try await firestore.getAccessToken()
         let client = Google_Firestore_V1_FirestoreAsyncClient(channel: firestore.channel)
         let headers = HPACKHeaders([("authorization", "Bearer \(accessToken)")])
         let callOptions = CallOptions(customMetadata: headers)
@@ -59,7 +61,8 @@ extension DocumentReference {
 
     public func updateData(_ fields: [String: Any]) async throws {
         let documentData = DocumentData(data: fields)
-        let accessToken = try await Firestore.firestore().getAccessToken()
+        let firestore = Firestore.firestore()
+        let accessToken = try await firestore.getAccessToken()
         let client = Google_Firestore_V1_FirestoreAsyncClient(channel: firestore.channel)
         let headers = HPACKHeaders([("authorization", "Bearer \(accessToken)")])
         let callOptions = CallOptions(customMetadata: headers)
@@ -83,7 +86,8 @@ extension DocumentReference {
     }
 
     public func delete() async throws {
-        let accessToken = try await Firestore.firestore().getAccessToken()
+        let firestore = Firestore.firestore()
+        let accessToken = try await firestore.getAccessToken()
         let client = Google_Firestore_V1_FirestoreNIOClient(channel: firestore.channel)
         let headers = HPACKHeaders([("authorization", "Bearer \(accessToken)")])
         let callOptions = CallOptions(customMetadata: headers)

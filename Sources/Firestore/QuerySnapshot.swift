@@ -20,7 +20,7 @@ public struct QuerySnapshot {
     init(response: Google_Firestore_V1_ListDocumentsResponse, collectionReference: CollectionReference) {
         self.documents = response.documents.lazy.map({ document in
             let documentID = String(document.name.split(separator: "/").last!)
-            let documentReference = DocumentReference(collectionReference.firestore, parentPath: collectionReference.path, documentID: documentID)
+            let documentReference = DocumentReference(collectionReference.database, parentPath: collectionReference.path, documentID: documentID)
             return QueryDocumentSnapshot(document: document, documentReference: documentReference)
         })
     }

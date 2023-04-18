@@ -97,7 +97,7 @@ public class Firestore {
         if groupID.contains("/") {
             fatalError("Invalid collection ID \(groupID). Collection IDs must not contain / in them.")
         }
-        return CollectionGroup(self, groupID: groupID)
+        return CollectionGroup(database, groupID: groupID)
     }
     
     /**
@@ -117,7 +117,7 @@ public class Firestore {
         if components.count.isMultiple(of: 2) {
             fatalError("Invalid collection ID. \(collectionID).")
         }
-        return CollectionReference(self, parentPath: nil, collectionID: collectionID)
+        return CollectionReference(database, parentPath: nil, collectionID: collectionID)
     }
     
     /**
@@ -139,6 +139,6 @@ public class Firestore {
         }
         let parentPath = components.dropLast(1).joined(separator: "/")
         let documentID = String(components.last!)
-        return DocumentReference(self, parentPath: parentPath, documentID: documentID)
+        return DocumentReference(database, parentPath: parentPath, documentID: documentID)
     }
 }
