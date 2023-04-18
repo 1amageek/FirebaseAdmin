@@ -22,12 +22,8 @@ final class FirebaseEncoderTests: XCTestCase {
         }
     }
 
-    struct NestNestedData: Codable {
-        var a: String = "A"
-    }
-
-    struct NestData: Codable {
-        struct NestedData: Codable {
+    struct NestData: Codable, Equatable {
+        struct NestedData: Codable, Equatable {
             var number: Int = 0
             var string: String = "string"
         }
@@ -36,7 +32,7 @@ final class FirebaseEncoderTests: XCTestCase {
         var nested: NestedData = NestedData()
     }
 
-    struct TestData: Codable {
+    struct TestData: Codable, Equatable {
         var number: Int = 0
         var string: String = "string"
         var bool: Bool = true
@@ -49,11 +45,9 @@ final class FirebaseEncoderTests: XCTestCase {
         var reference: DocumentReference = Firestore.firestore().document("test/0")
     }
 
-    func testDocumentData() async throws {
-
+    func testEncoder() async throws {
         let testData = TestData()
         let data = try! FirestoreEncoder().encode(testData)
-        print(data)
         XCTAssertEqual(data["number"] as! Int, 0)
         XCTAssertEqual(data["string"] as! String, "string")
         XCTAssertEqual(data["bool"] as! Bool, true)
@@ -63,5 +57,35 @@ final class FirebaseEncoderTests: XCTestCase {
         XCTAssertEqual(data["timestamp"] as! Timestamp, Timestamp(seconds: 0, nanos: 0))
         XCTAssertEqual(data["geoPoint"] as! GeoPoint, GeoPoint(latitude: 0, longitude: 0))
         XCTAssertEqual(data["reference"] as! DocumentReference, Firestore.firestore().document("test/0"))
+    }
+
+    func testDecoder() async throws {
+        let testData: [String: Any] = [
+            "number": 0,
+            "string": "string",
+            "bool": true,
+            "array": ["0", "1"],
+            "map": ["key": "value"],
+            "date": Date(timeIntervalSince1970: 0),
+            "nested": ["number": 0, "string": "string", "nested": ["number": 0, "string": "string"]],
+            "timestamp": Timestamp(seconds: 0, nanos: 0),
+            "geoPoint": GeoPoint(latitude: 0, longitude: 0),
+            "reference": Firestore.firestore().document("test/0")
+        ]
+
+        let data = try! FirestoreDecoder().decode(TestData.self, from: testData)
+
+        print(data)
+
+//
+//        XCTAssertEqual(data["number"] as! Int, 0)
+//        XCTAssertEqual(data["string"] as! String, "string")
+//        XCTAssertEqual(data["bool"] as! Bool, true)
+//        XCTAssertEqual(data["array"] as! [String], ["0", "1"])
+//        XCTAssertEqual(data["map"] as! [String: String], ["key": "value"])
+//        XCTAssertEqual(data["date"] as! Date, Date(timeIntervalSince1970: 0))
+//        XCTAssertEqual(data["timestamp"] as! Timestamp, Timestamp(seconds: 0, nanos: 0))
+//        XCTAssertEqual(data["geoPoint"] as! GeoPoint, GeoPoint(latitude: 0, longitude: 0))
+//        XCTAssertEqual(data["reference"] as! DocumentReference, Firestore.firestore().document("test/0"))
     }
 }
