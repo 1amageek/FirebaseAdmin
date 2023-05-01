@@ -18,8 +18,9 @@ let package = Package(
             targets: ["Firestore"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-protobuf.git", from: "1.21.0"),
-        .package(url: "https://github.com/grpc/grpc-swift.git", branch: "main"),
+        .package(url: "git@github.com:1amageek/FirebaseAPI.git", branch: "main"),
+//        .package(url: "https://github.com/apple/swift-protobuf.git", from: "1.21.0"),
+//        .package(url: "https://github.com/grpc/grpc-swift.git", branch: "main"),
         .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.0.0")
     ],
     targets: [
@@ -32,8 +33,9 @@ let package = Package(
             name: "Firestore",
             dependencies: [
                 "FirebaseApp",
-                .product(name: "GRPC", package: "grpc-swift"),
-                .product(name: "protoc-gen-swift", package: "swift-protobuf"),
+                .product(name: "FirestoreAPI", package: "FirebaseAPI"),
+//                .product(name: "GRPC", package: "grpc-swift"),
+//                .product(name: "protoc-gen-swift", package: "swift-protobuf"),
                 .product(name: "JWTKit", package: "jwt-kit"),
             ]),
         .testTarget(
