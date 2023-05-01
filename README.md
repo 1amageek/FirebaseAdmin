@@ -4,6 +4,8 @@ Firebase admin for Swift is a Swift package that provides a simple interface to 
 
 This repository includes the [googleapis](https://github.com/googleapis/googleapis) repository as a submodule, which is used to generate the API client code for Firebase.
 
+See: https://github.com/1amageek/FirebaseAPI
+
 
 # Development
 
@@ -28,18 +30,3 @@ Please copy this file to the `FirestoreTests` directory.
             ]),
 ```
 
-## Output latest API
-
-```
-protoc ./google/firestore/admin/v1/*.proto \
- ./google/firestore/v1/*.proto \
- ./google/api/field_behavior.proto \
- ./google/api/resource.proto \
- ./google/longrunning/operations.proto \
- ./google/rpc/status.proto \
- ./google/type/latlng.proto \
- --swift_out=../Sources/Firestore/Proto \
- --grpc-swift_out=../Sources/Firestore/Proto \
- --swift_opt=Visibility=Public \
- --grpc-swift_opt=Visibility=Public
-```
