@@ -6,12 +6,16 @@
 //
 
 import Foundation
-import GRPC
-import NIO
-import SwiftProtobuf
 import NIOHPACK
 
 extension Query {
+
+    public func getDocuments<T: Decodable>(type: T.Type) async throws -> [T]? {
+        let snapshot = try await getDocuments()
+        return try snapshot.documents.map { document in
+            return try FirestoreDecoder().decode(type, from: document.data())
+        }
+    }
 
     public func getDocuments() async throws -> QuerySnapshot {
         let firestore = Firestore.firestore()

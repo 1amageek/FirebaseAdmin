@@ -6,12 +6,20 @@
 //
 
 import Foundation
-import GRPC
-import NIO
-import SwiftProtobuf
 import NIOHPACK
 
 extension DocumentReference {
+
+    public func getDocument<T: Decodable>(type: T.Type) async throws -> T? {
+        let snapshot = try await getDocument()
+        if snapshot.isEmpty {
+            return nil
+        }
+        guard let data = snapshot.data() else {
+            return nil
+        }
+        return try FirestoreDecoder().decode(type, from: data)
+    }
 
     public func getDocument() async throws -> DocumentSnapshot {
         let firestore = Firestore.firestore()

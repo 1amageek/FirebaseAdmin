@@ -51,13 +51,22 @@ final class DocumentTests: XCTestCase {
         }
     }
 
+    func testEmptyDocument() async throws {
+        let snapshot = try await Firestore
+            .firestore()
+            .collection("test")
+            .document("empty")
+            .getDocument()
+        XCTAssertEqual(snapshot.isEmpty, true)
+    }
+
     func testDocumentData() async throws {
         let snapshot = try await Firestore
             .firestore()
             .collection("test")
             .document("doc")
             .getDocument()
-        let data = snapshot.data()
+        let data = snapshot.data()!
         XCTAssertEqual(data["number"] as! Int, 0)
         XCTAssertEqual(data["string"] as! String, "string")
         XCTAssertEqual(data["bool"] as! Bool, true)
@@ -74,7 +83,7 @@ final class DocumentTests: XCTestCase {
             .collection("test")
             .document("serverTimestamp")
             .getDocument()
-        let data = snapshot.data()
+        let data = snapshot.data()!
         XCTAssertTrue(data["serverTimestamp"] is Timestamp)
     }
 }
