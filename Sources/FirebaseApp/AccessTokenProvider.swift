@@ -9,6 +9,9 @@ import Foundation
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
+import Foundation
+#if canImport(Swift.Concurrency)
+import Swift.Concurrency
 import JWTKit
 
 struct AccessTokenPayload: JWTPayload {
