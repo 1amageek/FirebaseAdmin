@@ -27,7 +27,7 @@ let package = Package(
             name: "FirebaseApp",
             dependencies: [
                 .product(name: "AsyncHTTPClient", package: "async-http-client"),
-                .product(name: "NIO", package: "swift-nio"),
+                .product(name: "NIOFoundationCompat", package: "swift-nio"),
                 .product(name: "JWTKit", package: "jwt-kit"),
             ]),
         .target(

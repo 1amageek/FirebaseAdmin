@@ -8,6 +8,7 @@
 import Foundation
 import AsyncHTTPClient
 import NIO
+import NIOFoundationCompat
 import JWTKit
 
 struct AccessTokenPayload: JWTPayload {
