@@ -83,7 +83,8 @@ public struct AccessTokenProvider {
         configuration.tlsConfiguration = .clientDefault
         configuration.tlsConfiguration?.certificateVerification = .none
         configuration.httpVersion = .automatic
-        let client = HTTPClient(eventLoopGroupProvider: .createNew, configuration: configuration)
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
+        let client = HTTPClient(eventLoopGroupProvider: .shared(eventLoopGroup))
         let body = "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=\(signedJwt)"
         let request = try HTTPClient.Request(
             url: url,
@@ -94,6 +95,8 @@ public struct AccessTokenProvider {
             body: HTTPClient.Body.data(body.data(using: .utf8)!)
         )
         let response = try await client.execute(request: request).get()
+        try await client.shutdown()
+        try await eventLoopGroup.shutdownGracefully()
         guard
             var body = response.body,
             let responseBodyData = body.readData(length: body.readableBytes)
