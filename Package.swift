@@ -18,6 +18,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.10.0"),
+        .package(url: "https://github.com/apple/swift-nio.git", from: "2.44.0"),
         .package(url: "https://github.com/1amageek/FirebaseAPI.git", branch: "main"),
         .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.0.0")
     ],
@@ -26,6 +27,7 @@ let package = Package(
             name: "FirebaseApp",
             dependencies: [
                 .product(name: "AsyncHTTPClient", package: "async-http-client"),
+                .product(name: "NIO", package: "swift-nio"),
                 .product(name: "JWTKit", package: "jwt-kit"),
             ]),
         .target(
