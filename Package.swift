@@ -6,10 +6,9 @@ import PackageDescription
 let package = Package(
     name: "FirebaseAdmin",
     platforms: [
-        .iOS(.v16), .macOS(.v13)
+        .iOS(.v15), .macOS(.v10_15)
     ],
     products: [
-        // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(
             name: "FirebaseApp",
             targets: ["FirebaseApp"]),
@@ -18,6 +17,7 @@ let package = Package(
             targets: ["Firestore"]),
     ],
     dependencies: [
+        .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.10.0"),
         .package(url: "https://github.com/1amageek/FirebaseAPI.git", branch: "main"),
         .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.0.0")
     ],
@@ -25,6 +25,7 @@ let package = Package(
         .target(
             name: "FirebaseApp",
             dependencies: [
+                .product(name: "AsyncHTTPClient", package: "async-http-client"),
                 .product(name: "JWTKit", package: "jwt-kit"),
             ]),
         .target(

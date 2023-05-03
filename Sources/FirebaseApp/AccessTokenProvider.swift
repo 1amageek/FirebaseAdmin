@@ -6,13 +6,8 @@
 //
 
 import Foundation
-#if canImport(FoundationNetworking)
-import FoundationNetworking
-#endif
-import Foundation
-#if canImport(Swift.Concurrency)
-import Swift.Concurrency
-#endif
+import AsyncHTTPClient
+import NIO
 import JWTKit
 
 struct AccessTokenPayload: JWTPayload {
@@ -84,32 +79,33 @@ public struct AccessTokenProvider {
 
     private func requestAccessToken(signedJwt: String) async throws -> String {
         let url = URL(string: "https://\(GOOGLE_AUTH_TOKEN_HOST)\(GOOGLE_AUTH_TOKEN_PATH)")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        var configuration = HTTPClient.Configuration()
+        configuration.tlsConfiguration = .clientDefault
+        configuration.tlsConfiguration?.certificateVerification = .none
+        configuration.httpVersion = .automatic
+        let client = HTTPClient(eventLoopGroupProvider: .createNew, configuration: configuration)
         let body = "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=\(signedJwt)"
-        request.httpBody = body.data(using: .utf8)
-
-        return try await withCheckedThrowingContinuation { continuation in
-            let task = URLSession.shared.dataTask(with: request) { data, response, error in
-                if let error = error {
-                    continuation.resume(throwing: error)
-                    return
-                }
-
-                guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                    continuation.resume(throwing: NSError(domain: "FirestoreAccessTokenProvider", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response from token endpoint"]))
-                    return
-                }
-
-                guard let data = data, let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any], let accessToken = json["access_token"] as? String else {
-                    continuation.resume(throwing: NSError(domain: "FirestoreAccessTokenProvider", code: -1, userInfo: [NSLocalizedDescriptionKey: "Access token not found in token endpoint response"]))
-                    return
-                }
-
-                continuation.resume(returning: accessToken)
-            }
-            task.resume()
+        let request = try HTTPClient.Request(
+            url: url,
+            method: .POST,
+            headers: .init([
+                ("Content-Type", "application/x-www-form-urlencoded")
+            ]),
+            body: HTTPClient.Body.data(body.data(using: .utf8)!)
+        )
+        let response = try await client.execute(request: request).get()
+        guard
+            var body = response.body,
+            let responseBodyData = body.readData(length: body.readableBytes)
+        else {
+            throw NSError(domain: "FirestoreAccessTokenProvider", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response from token endpoint"])
         }
+        guard
+            let json = try JSONSerialization.jsonObject(with: responseBodyData, options: []) as? [String: Any],
+            let accessToken = json["access_token"] as? String else {
+            throw NSError(domain: "FirestoreAccessTokenProvider", code: -1, userInfo: [NSLocalizedDescriptionKey: "Access token not found in token endpoint response"])
+        }
+        return accessToken
     }
+
 }
