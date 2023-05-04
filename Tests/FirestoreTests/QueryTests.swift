@@ -47,7 +47,7 @@ final class QueryTests: XCTestCase {
             .where(field: "number", isEqualTo: 1)
             .getDocuments()
         XCTAssertEqual(snapshot.documents.count, 1)
-        XCTAssertEqual(snapshot.documents.first?.data()["number"] as? Int, 1)
+        XCTAssertEqual(snapshot.documents.first?.data()!["number"] as? Int, 1)
     }
 
     // Add more test cases for each QueryPredicate condition...
@@ -69,7 +69,7 @@ final class QueryTests: XCTestCase {
             .where(isEqualTo: "test/doc1")
             .getDocuments()
         XCTAssertEqual(snapshot.documents.count, 1)
-        XCTAssertEqual(snapshot.documents.first?.data()["number"] as? Int, 1)
+        XCTAssertEqual(snapshot.documents.first?.data()!["number"] as? Int, 1)
     }
 
     func testGetQueryDocumentsWhereIsNotEqualToDocumentID() async throws {
@@ -109,6 +109,6 @@ final class QueryTests: XCTestCase {
             .order(by: "number", descending: false)
             .getDocuments()
         XCTAssertEqual(snapshot.documents.count, 5)
-        XCTAssertEqual(snapshot.documents.first?.data()["number"] as? Int, 1)
+        XCTAssertEqual(snapshot.documents.first?.data()!["number"] as? Int, 1)
     }
 }

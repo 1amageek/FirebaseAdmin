@@ -86,4 +86,97 @@ final class DocumentTests: XCTestCase {
         let data = snapshot.data()!
         XCTAssertTrue(data["serverTimestamp"] is Timestamp)
     }
+
+    func testRoundtrip() async throws {
+        struct DeepNestObject: Codable, Equatable {
+            var number: Int = 0
+            var string: String = "string"
+            var bool: Bool = true
+            var array: [String] = ["0", "1"]
+            var map: [String: String] = ["value": "value"]
+            var date: Date = Date(timeIntervalSince1970: 0)
+            var timestamp: Timestamp = Timestamp(seconds: 0, nanos: 0)
+            var geoPoint: GeoPoint = GeoPoint(latitude: 0, longitude: 0)
+            var reference: DocumentReference = Firestore.firestore().document("documents/id")
+        }
+
+        struct NestObject: Codable, Equatable {
+            var number: Int = 0
+            var string: String = "string"
+            var bool: Bool = true
+            var array: [String] = ["0", "1"]
+            var map: [String: String] = ["value": "value"]
+            var date: Date = Date(timeIntervalSince1970: 0)
+            var timestamp: Timestamp = Timestamp(seconds: 0, nanos: 0)
+            var geoPoint: GeoPoint = GeoPoint(latitude: 0, longitude: 0)
+            var reference: DocumentReference = Firestore.firestore().document("documents/id")
+            var nested: DeepNestObject = DeepNestObject()
+        }
+
+        struct Object: Codable, Equatable {
+            var number: Int = 0
+            var string: String = "string"
+            var bool: Bool = true
+            var array: [String] = ["0", "1"]
+            var map: [String: String] = ["value": "value"]
+            var date: Date = Date(timeIntervalSince1970: 0)
+            var timestamp: Timestamp = Timestamp(seconds: 0, nanos: 0)
+            var geoPoint: GeoPoint = GeoPoint(latitude: 0, longitude: 0)
+            var reference: DocumentReference = Firestore.firestore().document("documents/id")
+            var nested: NestObject = NestObject()
+        }
+        
+        let writeData: Object = .init(
+            number: 0,
+            string: "string",
+            bool: true,
+            array: ["0", "1"],
+            map: ["key": "value"],
+            date: Date(timeIntervalSince1970: 0),
+            timestamp: Timestamp(seconds: 0, nanos: 0),
+            geoPoint: GeoPoint(latitude: 0, longitude: 0),
+            reference: Firestore.firestore().document("documents/id"),
+            nested: .init(
+                number: 0,
+                string: "string",
+                bool: true,
+                array: ["0", "1"],
+                map: ["key": "value"],
+                date: Date(timeIntervalSince1970: 0),
+                timestamp: Timestamp(seconds: 0, nanos: 0),
+                geoPoint: GeoPoint(latitude: 0, longitude: 0),
+                reference: Firestore.firestore().document("documents/id"),
+                nested: .init(
+                    number: 0,
+                    string: "string",
+                    bool: true,
+                    array: ["0", "1"],
+                    map: ["key": "value"],
+                    date: Date(timeIntervalSince1970: 0),
+                    timestamp: Timestamp(seconds: 0, nanos: 0),
+                    geoPoint: GeoPoint(latitude: 0, longitude: 0),
+                    reference: Firestore.firestore().document("documents/id")
+                )
+            )
+        )
+
+        let ref = Firestore
+            .firestore()
+            .collection("test")
+            .document("roundtrip")
+                try await ref.setData(writeData)
+        let readData = try await ref.getDocument(type: Object.self)
+
+        XCTAssertEqual(writeData.number, readData!.number)
+        XCTAssertEqual(writeData.string, readData!.string)
+        XCTAssertEqual(writeData.bool, readData!.bool)
+        XCTAssertEqual(writeData.array, readData!.array)
+        XCTAssertEqual(writeData.map, readData!.map)
+        XCTAssertEqual(writeData.date, readData!.date)
+        XCTAssertEqual(writeData.timestamp, readData!.timestamp)
+        XCTAssertEqual(writeData.geoPoint, readData!.geoPoint)
+        XCTAssertEqual(writeData.reference, readData!.reference)
+        XCTAssertEqual(writeData, readData)
+
+    }
 }
