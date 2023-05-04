@@ -9,46 +9,16 @@ import Foundation
  */
 extension Firestore {
 
-    class TokenManager {
+    /**
+     A struct that represents an access scope for the Firestore database.
 
-        /**
-         A struct that represents an access scope for the Firestore database.
+     The `Scope` struct conforms to the `AccessScope` protocol and provides a single read-only property that returns the URL for the access scope required for accessing the Firestore database.
+     */
+    struct Scope: FirestoreAPI.AccessScope {
 
-         The `Scope` struct conforms to the `AccessScope` protocol and provides a single read-only property that returns the URL for the access scope required for accessing the Firestore database.
-         */
-        public struct Scope: AccessScope {
-
-            /// The URL for the access scope required for accessing the Firestore database.
-            public var value: String { "https://www.googleapis.com/auth/cloud-platform" }
-        }
-
-        var accessToken: String?
-
-        var app: FirebaseApp
-
-        static let shared: TokenManager = TokenManager()
-
-        init(app: FirebaseApp = FirebaseApp.app) {
-            self.app = app
-        }
-
-        /**
-         Retrieves an access token for the Firestore database.
-
-         Use this method to retrieve an access token for the Firestore database. If an access token has already been retrieved, this method returns it. Otherwise, it initializes an `AccessTokenProvider` instance with the `FirebaseApp` service account and retrieves a new access token using the `Scope` struct. The access token is then stored in the `accessToken` property of the `Firestore` instance and returned.
-
-         - Returns: An access token for the Firestore database.
-         - Throws: A `ServiceAccountError` if an error occurs while initializing the `AccessTokenProvider` instance or retrieving the access token.
-         */
-        func getAccessToken() async throws -> String {
-            if let accessToken { return accessToken }
-            let accessTokenProvider = try AccessTokenProvider(serviceAccount: app.serviceAccount)
-            let accessToken = try await accessTokenProvider.fetchAccessToken(Scope())
-            self.accessToken = accessToken
-            return accessToken
-        }
+        /// The URL for the access scope required for accessing the Firestore database.
+        public var value: String { "https://www.googleapis.com/auth/cloud-platform" }
     }
-    
 
     /**
      Returns a `Firestore` instance initialized with the default `FirebaseApp` instance.
@@ -60,7 +30,13 @@ extension Firestore {
      - Returns: A `Firestore` instance initialized with the default `FirebaseApp` instance.
      */
     public static func firestore(app: FirebaseApp = FirebaseApp.app) -> Firestore {
-        return Firestore(projectId: app.serviceAccount.projectId)
+        let firestore = Firestore(projectId: app.serviceAccount.projectId)
+        do {
+            firestore.accessTokenProvider = try AccessTokenProvider(serviceAccount: app.serviceAccount)
+            return firestore
+        } catch {
+            fatalError("Invalid Service Account.")
+        }
     }
 
     /**
@@ -71,7 +47,7 @@ extension Firestore {
      - Returns: An access token for the Firestore database.
      - Throws: A `ServiceAccountError` if an error occurs while initializing the `AccessTokenProvider` instance or retrieving the access token.
      */
-    func getAccessToken() async throws -> String {
-        return try await TokenManager.shared.getAccessToken()
+    func getAccessToken() async throws -> String? {
+        return try await accessTokenProvider?.getAccessToken(scope: Scope(), expirationDuration: 3600)
     }
 }

@@ -32,7 +32,8 @@ public class FirebaseApp {
      */
     public static func initialize(fileName: String = "ServiceAccount") {
         do {
-            app.serviceAccount = try loadServiceAccount(from: fileName)
+            let serviceAccount = try loadServiceAccount(from: fileName)
+            initialize(serviceAccount: serviceAccount)
         } catch {
             fatalError("Service Account is not found.")
         }

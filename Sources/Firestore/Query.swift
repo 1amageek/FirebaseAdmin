@@ -12,13 +12,17 @@ extension Query {
 
     public func getDocuments<T: Decodable>(type: T.Type) async throws -> [T] {
         let firestore = Firestore.firestore()
-        let accessToken = try await firestore.getAccessToken()
+        guard let accessToken = try await firestore.getAccessToken() else {
+            fatalError("AcessToken is empty")
+        }
         let headers = HPACKHeaders([("authorization", "Bearer \(accessToken)")])
         return try await getDocuments(type: type, firestore: firestore, headers: headers)
     }
     public func getDocuments() async throws -> QuerySnapshot {
         let firestore = Firestore.firestore()
-        let accessToken = try await firestore.getAccessToken()
+        guard let accessToken = try await firestore.getAccessToken() else {
+            fatalError("AcessToken is empty")
+        }
         let headers = HPACKHeaders([("authorization", "Bearer \(accessToken)")])
         return try await getDocuments(firestore: firestore, headers: headers)
     }
