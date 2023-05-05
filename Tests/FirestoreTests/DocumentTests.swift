@@ -88,6 +88,26 @@ final class DocumentTests: XCTestCase {
 
     }
 
+    func testConvertIntToDouble() async throws {
+
+        struct IntObject: Codable {
+            var value: Int = 0
+        }
+
+        struct DoubleObject: Codable {
+            var value: Double = 0
+        }
+
+        let ref = Firestore
+            .firestore()
+            .collection("test")
+            .document("testConvertIntToDouble")
+        let writeData = IntObject(value: 5)
+        try await ref.setData(writeData)
+        let readData = try await ref.getDocument(type: DoubleObject.self)
+        XCTAssertEqual(Double(writeData.value), readData!.value)
+    }
+
     func testRoundtrip() async throws {
         struct DeepNestObject: Codable, Equatable {
             var number: Int = 0
