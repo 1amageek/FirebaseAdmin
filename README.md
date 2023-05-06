@@ -23,7 +23,7 @@ Before you can use Firebase Admin for Swift, you need to load a service account.
 
 To load a service account in your Swift code:
 
-```
+```main.swift
 func loadServiceAccount(from jsonFile: String) throws -> ServiceAccount {
     guard let path = Bundle.module.path(forResource: jsonFile, ofType: "json")  else {
         throw NSError(domain: "FileNotFoundError", code: 404, userInfo: [NSLocalizedDescriptionKey: "JSON file not found"])
