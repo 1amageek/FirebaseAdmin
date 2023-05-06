@@ -140,7 +140,7 @@ struct User: Codable {
 
 Here's an example of how to use Firebase Admin for Swift in a Vapor app:
 
-```Package.json
+```Package.swift
 
 // swift-tools-version:5.8
 import PackageDescription
