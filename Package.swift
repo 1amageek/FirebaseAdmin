@@ -13,6 +13,9 @@ let package = Package(
             name: "FirebaseApp",
             targets: ["FirebaseApp"]),
         .library(
+            name: "AppCheck",
+            targets: ["AppCheck"]),
+        .library(
             name: "Firestore",
             targets: ["Firestore"]),
     ],
@@ -26,17 +29,32 @@ let package = Package(
         .target(
             name: "FirebaseApp",
             dependencies: [
-                .product(name: "AsyncHTTPClient", package: "async-http-client"),
                 .product(name: "NIOFoundationCompat", package: "swift-nio"),
                 .product(name: "JWTKit", package: "jwt-kit"),
+            ]),
+        .target(
+            name: "AppCheck",
+            dependencies: [
+                "FirebaseApp",
+                .product(name: "AsyncHTTPClient", package: "async-http-client"),
+                .product(name: "JWTKit", package: "jwt-kit")
             ]),
         .target(
             name: "Firestore",
             dependencies: [
                 "FirebaseApp",
+                .product(name: "AsyncHTTPClient", package: "async-http-client"),
                 .product(name: "FirestoreAPI", package: "FirebaseAPI"),
                 .product(name: "JWTKit", package: "jwt-kit"),
             ]),
+        .testTarget(
+            name: "AppCheckTests",
+            dependencies: [
+                "AppCheck",
+                .product(name: "NIOFoundationCompat", package: "swift-nio"),
+                .product(name: "AsyncHTTPClient", package: "async-http-client")
+            ]
+        ),
         .testTarget(
             name: "FirestoreTests",
             dependencies: ["Firestore"],
