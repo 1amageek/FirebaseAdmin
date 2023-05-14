@@ -145,4 +145,36 @@ final class WriteBatchTests: XCTestCase {
         }
     }
 
+    func testLimitMaxWriteBatch() async throws {
+        let firestore = Firestore.firestore()
+        let createBatch = firestore.batch()
+        (0..<501).forEach { index in
+            let ref = firestore.collection("test_batch").document("batch_limit_\(index)")
+            createBatch.setData(data: ["field": index], forDocument: ref)
+        }
+        do {
+            try await createBatch.commit()
+        } catch {
+            XCTAssertNotNil(error)
+        }
+    }
+
+    func testFieldValueWriteBatch() async throws {
+        let firestore = Firestore.firestore()
+        let createBatch = firestore.batch()
+        (0..<5).forEach { index in
+            let timestamp = FieldValue.serverTimestamp
+            let ref = firestore.collection("test_batch").document("batch_fieldvalue_\(index)")
+            createBatch.setData(data: ["field": index, "timestamp": timestamp], forDocument: ref)
+        }
+        try await createBatch.commit()
+        for index in (0..<5) {
+            let ref = firestore.collection("test_batch").document("batch_fieldvalue_\(index)")
+            let snapshot = try await ref.getDocument()
+            let data = snapshot.data()!
+            XCTAssertEqual(data["field"] as! Int, index)
+            XCTAssertTrue(data["timestamp"] is Timestamp)
+        }
+    }
+
 }
