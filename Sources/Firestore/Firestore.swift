@@ -48,6 +48,6 @@ extension Firestore {
      - Throws: A `ServiceAccountError` if an error occurs while initializing the `AccessTokenProvider` instance or retrieving the access token.
      */
     func getAccessToken() async throws -> String? {
-        return try await accessTokenProvider?.getAccessToken(scope: Scope(), expirationDuration: 3600)
+        return try await accessTokenProvider?.getAccessToken(expirationDuration: 3600)
     }
 }

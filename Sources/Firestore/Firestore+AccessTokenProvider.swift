@@ -39,6 +39,8 @@ public class AccessTokenProvider: FirestoreAPI.AccessTokenProvider {
 
     private let signer: JWTSigner
 
+    public var scope: FirestoreAPI.AccessScope { Firestore.Scope() }
+
     var accessToken: String?
 
     var expireTime: Date?
@@ -57,7 +59,7 @@ public class AccessTokenProvider: FirestoreAPI.AccessTokenProvider {
      - Returns: An access token for the Firestore database.
      - Throws: A `ServiceAccountError` if an error occurs while initializing the `AccessTokenProvider` instance or retrieving the access token.
      */
-    public func getAccessToken(scope: FirestoreAPI.AccessScope, expirationDuration: TimeInterval) async throws -> String {
+    public func getAccessToken(expirationDuration: TimeInterval) async throws -> String {
         if let token = accessToken, let expiration = expireTime, expiration > Date() {
             return token
         }
