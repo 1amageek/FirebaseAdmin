@@ -32,13 +32,8 @@ public class FirebaseAPIClient {
         self.endpoint = FirebaseEndpoint()
     }
     
-    deinit {
-        // Use shutdown to ensure no event loop issues
-        httpClient.shutdown { error in
-            if let error = error {
-                print("Error shutting down HTTPClient: \(error)")
-            }
-        }
+    public func shutdown() async throws {
+        try await httpClient.shutdown()
     }
     
     public func throwIfError(response: HTTPClient.Response, body: ByteBuffer) throws {
