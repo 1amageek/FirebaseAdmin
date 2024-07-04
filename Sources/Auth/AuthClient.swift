@@ -68,7 +68,7 @@ public class AuthClient {
     }
     
     public func getUser(uid: String) async throws -> FirebaseUser {
-        let endpoint = String(describing: api.endpoint(for: .lookup))
+        let endpoint = api.endpoint(for: .lookup).fullURL
         let (response, body) = try await api.makeAuthenticatedPost(
             endpoint: endpoint,
             body: UserRequest(localId: uid))
@@ -79,9 +79,10 @@ public class AuthClient {
         }
         return user
     }
+
     
     public func getUsers() async throws -> [UserRecord] {
-        let endpoint = String(describing: api.endpoint(for: .query))
+        let endpoint = api.endpoint(for: .query).fullURL
         let (response, body) = try await api.makeAuthenticatedPost(endpoint: endpoint)
         
         let usersResponse: UserList = try api.decodeOrThrow(response: response, body: body)
@@ -89,7 +90,7 @@ public class AuthClient {
     }
     
     public func deleteUser(uid: String) async throws {
-        let endpoint = String(describing: api.endpoint(for: .delete))
+        let endpoint = api.endpoint(for: .delete).fullURL
         let (response, body) = try await api.makeAuthenticatedPost(
             endpoint: endpoint,
             body: UserRequest(localId: uid))

@@ -12,7 +12,7 @@ public struct FirebaseEndpoint {
     let baseURL: String
     let path: String
     
-    var fullURL: String {
+    public var fullURL: String {
         return baseURL + path
     }
     
