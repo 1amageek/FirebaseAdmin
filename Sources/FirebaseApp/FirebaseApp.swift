@@ -1,35 +1,36 @@
 //
 //  FirebaseApp.swift
-//  
+//
 //
 //  Created by Norikazu Muramoto on 2023/04/07.
 //
 
 import Foundation
 
-/**
- The singleton instance of the Firebase app.
-
- Use this property to access the `FirebaseApp` instance throughout your app.
- */
-public class FirebaseApp {
-
-    /**
-    A class that represents a Firebase app.
-
-    The FirebaseApp class provides a static method for initializing the app with a service account, which is necessary for authenticating with Firebase services. A service account contains the credentials required to authenticate with the Firebase API.
-
-    The FirebaseApp class also contains a property named serviceAccount, which holds the loaded ServiceAccount object for the Firebase app.
-    */
-    public static var app: FirebaseApp = FirebaseApp()
-
-    /**
-     Initializes the Firebase app with a service account loaded from a JSON file.
-
-     - Parameter fileName: The name of the JSON file containing the service account credentials. Defaults to "ServiceAccount".
-
-     This method attempts to load the service account from the specified JSON file and assign it to the `serviceAccount` property of the `FirebaseApp` instance. If the file cannot be found, this method throws a `FileNotFoundError`.
-     */
+public final class FirebaseApp: @unchecked Sendable {
+    private static let _app = FirebaseApp()
+    public static var app: FirebaseApp {
+        get { _app }
+    }
+    
+    private let lock = NSLock()
+    private var _serviceAccount: ServiceAccount?
+    
+    private init() {}
+    
+    public var serviceAccount: ServiceAccount? {
+        get {
+            lock.lock()
+            defer { lock.unlock() }
+            return _serviceAccount
+        }
+        set {
+            lock.lock()
+            defer { lock.unlock() }
+            _serviceAccount = newValue
+        }
+    }
+    
     public static func initialize(fileName: String = "ServiceAccount") {
         do {
             let serviceAccount = try loadServiceAccount(from: fileName)
@@ -38,35 +39,13 @@ public class FirebaseApp {
             fatalError("Service Account is not found.")
         }
     }
-
-    /**
-     Initializes the Firebase app with a given service account.
-
-     - Parameter serviceAccount: A `ServiceAccount` object containing the credentials required to authenticate with Firebase services.
-
-     Use this method to initialize the `FirebaseApp` instance with a service account object that has already been loaded.
-     */
+    
     public static func initialize(serviceAccount: ServiceAccount) {
         app.serviceAccount = serviceAccount
     }
-
-    /**
-     The service account for the Firebase app.
-
-     The service account contains the credentials required to authenticate with Firebase services.
-     */
-    public var serviceAccount: ServiceAccount!
-
-    /**
-     Loads a `ServiceAccount` object from a JSON file.
-
-     - Parameter jsonFile: The name of the JSON file containing the service account credentials.
-     - Throws: A `FileNotFoundError` if the specified file cannot be found, or a `JSONParsingError` if an error occurs while parsing the file.
-
-     Use this method to load a `ServiceAccount` object from a JSON file. This method returns a `ServiceAccount` object if the file is successfully parsed and the data is successfully decoded, or throws a `JSONParsingError` if an error occurs during parsing.
-     */
-    class func loadServiceAccount(from jsonFile: String) throws -> ServiceAccount {
-        guard let path = Bundle.main.path(forResource: jsonFile, ofType: "json")  else {
+    
+    public static func loadServiceAccount(from jsonFile: String) throws -> ServiceAccount {
+        guard let path = Bundle.main.path(forResource: jsonFile, ofType: "json") else {
             throw NSError(domain: "FileNotFoundError", code: 404, userInfo: [NSLocalizedDescriptionKey: "JSON file not found"])
         }
         do {
@@ -77,5 +56,12 @@ public class FirebaseApp {
         } catch {
             throw NSError(domain: "JSONParsingError", code: 400, userInfo: [NSLocalizedDescriptionKey: "Error parsing JSON file: \(error)"])
         }
+    }
+    
+    public func getServiceAccount() throws -> ServiceAccount {
+        guard let serviceAccount = self.serviceAccount else {
+            throw NSError(domain: "ServiceAccountError", code: 500, userInfo: [NSLocalizedDescriptionKey: "Service Account is not initialized"])
+        }
+        return serviceAccount
     }
 }

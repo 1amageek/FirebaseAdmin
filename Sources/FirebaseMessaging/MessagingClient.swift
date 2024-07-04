@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import JWTKit
 import AsyncHTTPClient
 import NIO
 
@@ -18,10 +19,12 @@ public class MessagingClient {
         self.api = FirebaseAPIClient(serviceAccount: serviceAccount)
     }
     
+    // MARK: - Send FCM Message
     public func send(_ message: FcmMessage, dryRun: Bool = false) async throws {
-        let endpoint = FirebaseEndpoint.messages(.send, projectID: serviceAccount.projectId)
-        let request = try message.makeRequest(dryRun: dryRun)
-        let response = try await api.httpClient.post(endpoint: endpoint, body: request)
-        try api.throwIfError(response: response.0, body: response.1)
+        let endpoint = FirebaseEndpoint.messages(.send, projectID: serviceAccount.projectId).fullURL
+        let responseData = try await api.makeAuthenticatedPost(
+            endpoint: endpoint,
+            body: FcmRequest(validateOnly: dryRun, message: message)
+        ).get()
     }
 }

@@ -8,7 +8,7 @@
 import Foundation
 
 // Defining a public struct named ServiceAccount which conforms to Codable protocol
-public struct ServiceAccount: Codable {
+public struct ServiceAccount: Codable, Sendable {
     public let type: String
     public let projectId: String
     public let privateKeyId: String

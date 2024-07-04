@@ -92,7 +92,40 @@ public class FirebaseAPIClient {
             }
         }
     }
-
+    
+    public func makeAuthenticatedPost(endpoint: String, body: Encodable? = nil) -> EventLoopFuture<Data> {
+        return getOAuthToken().flatMap { token in
+            do {
+                var request = try HTTPClient.Request(url: endpoint, method: .POST)
+                request.headers.add(name: "Content-Type", value: "application/json")
+                request.headers.add(name: "Authorization", value: "Bearer \(token.access_token)")
+                if let body = body {
+                    request.body = .data(try JSONEncoder().encode(body))
+                }
+                
+                return self.httpClient.execute(request: request).flatMap { response in
+                    guard var byteBuffer = response.body else {
+                        return self.httpClient.eventLoopGroup.next().makeFailedFuture(FirebaseAPIError.missingResponseBody)
+                    }
+                    let responseData = byteBuffer.readData(length: byteBuffer.readableBytes)!
+                    
+                    if response.status == .ok {
+                        return self.httpClient.eventLoopGroup.next().makeSucceededFuture(responseData)
+                    } else {
+                        do {
+                            let errorResponse = try self.decoder.decode(FirebaseErrorResponse.self, from: responseData)
+                            return self.httpClient.eventLoopGroup.next().makeFailedFuture(errorResponse)
+                        } catch {
+                            return self.httpClient.eventLoopGroup.next().makeFailedFuture(error)
+                        }
+                    }
+                }
+            } catch {
+                return self.httpClient.eventLoopGroup.next().makeFailedFuture(error)
+            }
+        }
+    }
+    
     private func getOAuthToken() -> EventLoopFuture<OAuthTokenResponse> {
         // Implement token caching logic here if needed
         return getNewOAuthToken()

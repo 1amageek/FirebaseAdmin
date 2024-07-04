@@ -29,10 +29,13 @@ extension Firestore {
      
      - Returns: A `Firestore` instance initialized with the default `FirebaseApp` instance.
      */
-    public static func firestore(app: FirebaseApp = FirebaseApp.app) -> Firestore {
-        let firestore = Firestore(projectId: app.serviceAccount.projectId)
+    public static func firestore(app: FirebaseApp = FirebaseApp.app) throws -> Firestore {
+        guard let serviceAccount = app.serviceAccount else {
+            throw NSError(domain: "ServiceAccountError", code: 500, userInfo: [NSLocalizedDescriptionKey: "Service Account is not initialized"])
+        }
+        let firestore = Firestore(projectId: serviceAccount.projectId)
         do {
-            firestore.accessTokenProvider = try AccessTokenProvider(serviceAccount: app.serviceAccount)
+            firestore.accessTokenProvider = try AccessTokenProvider(serviceAccount: serviceAccount)
             return firestore
         } catch {
             fatalError("Invalid Service Account.")

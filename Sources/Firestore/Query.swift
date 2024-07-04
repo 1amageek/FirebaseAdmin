@@ -9,9 +9,8 @@ import Foundation
 import NIOHPACK
 
 extension Query {
-
     public func getDocuments<T: Decodable>(type: T.Type) async throws -> [T] {
-        let firestore = Firestore.firestore()
+        let firestore = try Firestore.firestore()
         guard let accessToken = try await firestore.getAccessToken() else {
             fatalError("AcessToken is empty")
         }
@@ -19,7 +18,7 @@ extension Query {
         return try await getDocuments(type: type, firestore: firestore, headers: headers)
     }
     public func getDocuments() async throws -> QuerySnapshot {
-        let firestore = Firestore.firestore()
+        let firestore = try Firestore.firestore()
         guard let accessToken = try await firestore.getAccessToken() else {
             fatalError("AcessToken is empty")
         }
