@@ -49,10 +49,7 @@ let package = Package(
                 .product(name: "AsyncHTTPClient", package: "async-http-client"),
                 .product(name: "JWTKit", package: "jwt-kit")
             ],
-            swiftSettings: [
-                .enableExperimentalFeature("StrictConcurrency=targeted", .when(platforms: [.macOS, .iOS])),
-                .enableUpcomingFeature("SWIFT_UPCOMING_FEATURE_FORWARD_TRAILING_CLOSURES")
-            ]),
+            swiftSettings: swiftSettings),
         .target(
             name: "Firestore",
             dependencies: [
@@ -60,10 +57,7 @@ let package = Package(
                 .product(name: "AsyncHTTPClient", package: "async-http-client"),
                 .product(name: "FirestoreAPI", package: "FirebaseAPI"),
                 .product(name: "JWTKit", package: "jwt-kit"),
-            ],swiftSettings: [
-                .enableExperimentalFeature("StrictConcurrency=targeted", .when(platforms: [.macOS, .iOS])),
-                .enableUpcomingFeature("SWIFT_UPCOMING_FEATURE_FORWARD_TRAILING_CLOSURES")
-            ]),
+            ],swiftSettings: swiftSettings),
         .target(
             name: "Auth",
             dependencies: [
@@ -71,10 +65,7 @@ let package = Package(
                 .product(name: "AsyncHTTPClient", package: "async-http-client"),
                 .product(name: "JWTKit", package: "jwt-kit"),
                 .product(name: "AnyCodable", package: "AnyCodable"),
-            ],swiftSettings: [
-                .enableExperimentalFeature("StrictConcurrency=targeted", .when(platforms: [.macOS, .iOS])),
-                .enableUpcomingFeature("SWIFT_UPCOMING_FEATURE_FORWARD_TRAILING_CLOSURES")
-            ]),
+            ],swiftSettings: swiftSettings),
         .testTarget(
             name: "AppCheckTests",
             dependencies: [
@@ -90,3 +81,8 @@ let package = Package(
         ),
     ]
 )
+
+var swiftSettings: [SwiftSetting] { [
+    .enableUpcomingFeature("DisableOutwardActorInference"),
+    .enableExperimentalFeature("StrictConcurrency"),
+] }
