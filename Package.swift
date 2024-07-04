@@ -19,8 +19,11 @@ let package = Package(
             name: "Firestore",
             targets: ["Firestore"]),
         .library(
-            name: "Auth",
-            targets: ["Auth"])
+            name: "FirebaseAuth",
+            targets: ["FirebaseAuth"]),
+        .library(
+            name: "FirebaseMessaging", 
+            targets: ["FirebaseMessaging"]),
     ],
     dependencies: [
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.21.2"),
@@ -59,12 +62,19 @@ let package = Package(
                 .product(name: "JWTKit", package: "jwt-kit"),
             ],swiftSettings: swiftSettings),
         .target(
-            name: "Auth",
+            name: "FirebaseAuth",
             dependencies: [
                 "FirebaseApp",
                 .product(name: "AsyncHTTPClient", package: "async-http-client"),
                 .product(name: "JWTKit", package: "jwt-kit"),
                 .product(name: "AnyCodable", package: "AnyCodable"),
+            ],swiftSettings: swiftSettings),
+        .target(
+            name: "FirebaseMessaging",
+            dependencies: [
+                "FirebaseApp",
+                .product(name: "AsyncHTTPClient", package: "async-http-client"),
+                .product(name: "JWTKit", package: "jwt-kit"),
             ],swiftSettings: swiftSettings),
         .testTarget(
             name: "AppCheckTests",
