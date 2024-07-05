@@ -18,27 +18,41 @@ let package = Package(
         .library(
             name: "Firestore",
             targets: ["Firestore"]),
+        .library(
+            name: "FirebaseAuth",
+            targets: ["FirebaseAuth"]),
+        .library(
+            name: "FirebaseMessaging", 
+            targets: ["FirebaseMessaging"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.17.0"),
-        .package(url: "https://github.com/apple/swift-nio.git", from: "2.51.1"),
+        .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.21.2"),
+        .package(url: "https://github.com/apple/swift-nio.git", from: "2.68.0"),
         .package(url: "https://github.com/1amageek/FirebaseAPI.git", branch: "main"),
-        .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.0.0")
+        .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.13.4"),
+        .package(url: "https://github.com/Flight-School/AnyCodable", from: "0.6.7")
     ],
     targets: [
         .target(
             name: "FirebaseApp",
             dependencies: [
                 .product(name: "NIOFoundationCompat", package: "swift-nio"),
+                .product(name: "AsyncHTTPClient", package: "async-http-client"),
                 .product(name: "JWTKit", package: "jwt-kit"),
-            ]),
+            ],
+            swiftSettings: [
+                .enableExperimentalFeature("StrictConcurrency=targeted", .when(platforms: [.macOS, .iOS])),
+                .enableUpcomingFeature("SWIFT_UPCOMING_FEATURE_FORWARD_TRAILING_CLOSURES")
+            ]
+        ),
         .target(
             name: "AppCheck",
             dependencies: [
                 "FirebaseApp",
                 .product(name: "AsyncHTTPClient", package: "async-http-client"),
                 .product(name: "JWTKit", package: "jwt-kit")
-            ]),
+            ],
+            swiftSettings: swiftSettings),
         .target(
             name: "Firestore",
             dependencies: [
@@ -46,7 +60,22 @@ let package = Package(
                 .product(name: "AsyncHTTPClient", package: "async-http-client"),
                 .product(name: "FirestoreAPI", package: "FirebaseAPI"),
                 .product(name: "JWTKit", package: "jwt-kit"),
-            ]),
+            ],swiftSettings: swiftSettings),
+        .target(
+            name: "FirebaseAuth",
+            dependencies: [
+                "FirebaseApp",
+                .product(name: "AsyncHTTPClient", package: "async-http-client"),
+                .product(name: "JWTKit", package: "jwt-kit"),
+                .product(name: "AnyCodable", package: "AnyCodable"),
+            ],swiftSettings: swiftSettings),
+        .target(
+            name: "FirebaseMessaging",
+            dependencies: [
+                "FirebaseApp",
+                .product(name: "AsyncHTTPClient", package: "async-http-client"),
+                .product(name: "JWTKit", package: "jwt-kit"),
+            ],swiftSettings: swiftSettings),
         .testTarget(
             name: "AppCheckTests",
             dependencies: [
@@ -62,3 +91,8 @@ let package = Package(
         ),
     ]
 )
+
+var swiftSettings: [SwiftSetting] { [
+    .enableUpcomingFeature("DisableOutwardActorInference"),
+    .enableExperimentalFeature("StrictConcurrency"),
+] }

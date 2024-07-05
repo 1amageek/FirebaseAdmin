@@ -11,7 +11,7 @@ import NIOHPACK
 extension DocumentReference {
 
     public func getDocument() async throws -> DocumentSnapshot {
-        let firestore = Firestore.firestore()
+        let firestore = try Firestore.firestore()
         guard let accessToken = try await firestore.getAccessToken() else {
             fatalError("AcessToken is empty")
         }
@@ -20,7 +20,7 @@ extension DocumentReference {
     }
 
     public func setData(_ documentData: [String: Any], merge: Bool = false) async throws {
-        let firestore = Firestore.firestore()
+        let firestore = try Firestore.firestore()
         guard let accessToken = try await firestore.getAccessToken() else {
             fatalError("AcessToken is empty")
         }
@@ -29,7 +29,7 @@ extension DocumentReference {
     }
 
     public func updateData(_ fields: [String: Any]) async throws {
-        let firestore = Firestore.firestore()
+        let firestore = try Firestore.firestore()
         guard let accessToken = try await firestore.getAccessToken() else {
             fatalError("AcessToken is empty")
         }
@@ -38,7 +38,7 @@ extension DocumentReference {
     }
 
     public func delete() async throws {
-        let firestore = Firestore.firestore()
+        let firestore = try Firestore.firestore()
         guard let accessToken = try await firestore.getAccessToken() else {
             fatalError("AcessToken is empty")
         }
@@ -50,7 +50,7 @@ extension DocumentReference {
 extension DocumentReference {
 
     public func setData<T: Encodable>(_ data: T, merge: Bool = false) async throws {
-        let firestore = Firestore.firestore()
+        let firestore = try Firestore.firestore()
         guard let accessToken = try await firestore.getAccessToken() else {
             fatalError("AcessToken is empty")
         }
@@ -59,7 +59,7 @@ extension DocumentReference {
     }
 
     public func updateData<T: Encodable>(_ data: T) async throws {
-        let firestore = Firestore.firestore()
+        let firestore = try Firestore.firestore()
         guard let accessToken = try await firestore.getAccessToken() else {
             fatalError("AcessToken is empty")
         }
@@ -71,7 +71,7 @@ extension DocumentReference {
 extension DocumentReference {
 
     public func getDocument<T: Decodable>(type: T.Type) async throws -> T? {
-        let firestore = Firestore.firestore()
+        let firestore = try Firestore.firestore()
         guard let accessToken = try await firestore.getAccessToken() else {
             fatalError("AcessToken is empty")
         }
