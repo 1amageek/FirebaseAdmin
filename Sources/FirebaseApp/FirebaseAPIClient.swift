@@ -62,8 +62,8 @@ public class FirebaseAPIClient {
         throw NSError(domain: "FirebaseAPIClient", code: 0, userInfo: [NSLocalizedDescriptionKey: "Could not parse response"])
     }
     
-    public func makeAuthenticatedPost<T: Codable>(endpoint: String, body: Codable? = nil) -> EventLoopFuture<T> {
-        return getOAuthToken().flatMap { token in
+    public func makeAuthenticatedPost<T: Codable>(endpoint: String, body: Codable? = nil) async -> EventLoopFuture<T> {
+        return await getOAuthToken().flatMap { token in
             do {
                 var request = try HTTPClient.Request(url: endpoint, method: .POST)
                 request.headers.add(name: "Content-Type", value: "application/json")
@@ -93,8 +93,8 @@ public class FirebaseAPIClient {
         }
     }
     
-    public func makeAuthenticatedPost(endpoint: String, body: Encodable? = nil) -> EventLoopFuture<Data> {
-        return getOAuthToken().flatMap { token in
+    public func makeAuthenticatedPost(endpoint: String, body: Encodable? = nil) async -> EventLoopFuture<Data> {
+        return await getOAuthToken().flatMap { token in
             do {
                 var request = try HTTPClient.Request(url: endpoint, method: .POST)
                 request.headers.add(name: "Content-Type", value: "application/json")
@@ -126,12 +126,12 @@ public class FirebaseAPIClient {
         }
     }
     
-    private func getOAuthToken() -> EventLoopFuture<OAuthTokenResponse> {
+    private func getOAuthToken() async -> EventLoopFuture<OAuthTokenResponse> {
         // Implement token caching logic here if needed
-        return getNewOAuthToken()
+        return await getNewOAuthToken()
     }
     
-    private func getNewOAuthToken() -> EventLoopFuture<OAuthTokenResponse> {
+    private func getNewOAuthToken() async -> EventLoopFuture<OAuthTokenResponse> {
         guard let serviceAccount = serviceAccount else {
             return httpClient.eventLoopGroup.next().makeFailedFuture(FirebaseAPIError.serviceAccountNotSet)
         }
@@ -139,15 +139,17 @@ public class FirebaseAPIClient {
         do {
             let scopes = "https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/datastore https://www.googleapis.com/auth/devstorage.full_control https://www.googleapis.com/auth/firebase https://www.googleapis.com/auth/identitytoolkit https://www.googleapis.com/auth/userinfo.email"
             
-            let privateKey = try RSAKey.private(pem: serviceAccount.privateKeyPem)
-            let signers = JWTSigners()
-            signers.use(.rs256(key: privateKey), kid: JWKIdentifier(string: serviceAccount.privateKeyId))
+            let privateKey = try Insecure.RSA.PrivateKey(pem: serviceAccount.privateKeyPem)
+            let keyCollection = try await JWTKeyCollection()
+                .add(rsa: privateKey, digestAlgorithm: .sha256, kid: JWKIdentifier(string: serviceAccount.privateKeyId))
             
-            let jwt = try signers.sign(FirebaseAdminAuthPayload(
+            let payload = FirebaseAdminAuthPayload(
                 scope: scopes,
                 issuer: .init(stringLiteral: serviceAccount.clientEmail),
-                audience: .init(stringLiteral: serviceAccount.tokenUri))
+                audience: .init(stringLiteral: serviceAccount.tokenUri)
             )
+            
+            let jwt = try await keyCollection.sign(payload, kid: JWKIdentifier(string: serviceAccount.privateKeyId))
             
             var request = try HTTPClient.Request(url: serviceAccount.tokenUri, method: .POST)
             request.headers.add(name: "Content-Type", value: "application/x-www-form-urlencoded")
@@ -200,7 +202,7 @@ struct FirebaseAdminAuthPayload: JWTPayload {
     var audience: AudienceClaim
     var expiration: ExpirationClaim = .init(value: Date().addingTimeInterval(.seconds(1000)))
     
-    func verify(using signer: JWTSigner) throws {
+    func verify(using signer: some JWTAlgorithm) throws {
         try self.expiration.verifyNotExpired()
     }
 }
