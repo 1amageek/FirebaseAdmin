@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "FirebaseAdmin",
     platforms: [
-        .iOS(.v15), .macOS(.v10_15)
+        .iOS(.v15), .macOS(.v13)
     ],
     products: [
         .library(
