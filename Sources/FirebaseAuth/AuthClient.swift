@@ -20,14 +20,20 @@ public enum AuthError: Error {
     case decodingFailed
 }
 
-public class AuthClient {
+@globalActor public actor AuthActor {
+    public static let shared = AuthActor()
+    private init() {}
+}
+
+@AuthActor
+public class AuthClient: Sendable {
     private let jwksURL = "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"
     private let api: FirebaseAPIClient
     private let serviceAccount: ServiceAccount
 
-    public init(serviceAccount: ServiceAccount) {
+    public init(serviceAccount: ServiceAccount) async {
         self.serviceAccount = serviceAccount
-        self.api = FirebaseAPIClient(serviceAccount: serviceAccount)
+        self.api = await FirebaseAPIClient(serviceAccount: serviceAccount)
     }
 
     public func validate(idToken: String) async throws -> FirebaseJWTPayload {
@@ -62,17 +68,17 @@ public class AuthClient {
         guard !jwks.keys.isEmpty else {
             throw AuthError.failedToResolveJWKS
         }
-        let signers = JWTSigners()
-        try signers.use(jwks: jwks)
-        return try signers.verify(idToken, as: FirebaseJWTPayload.self)
+        let signers = JWTKeyCollection()
+        try await signers.use(jwks: jwks)
+        return try await signers.verify(idToken, as: FirebaseJWTPayload.self)
     }
 
     public func getUser(uid: String) async throws -> FirebaseUser {
-        let endpoint = api.endpoint(for: .lookup).fullURL
+        let endpoint = await api.endpoint(for: .lookup).fullURL
         let userResponse: LookupResponse = try await api.makeAuthenticatedPost(
             endpoint: endpoint,
             body: UserRequest(localId: uid)
-        ).get()
+        )
 
         guard let user = userResponse.users?.first else {
             throw AuthError.userNotFound
@@ -82,17 +88,24 @@ public class AuthClient {
     }
 
     public func getUsers() async throws -> [UserRecord] {
-        let endpoint = api.endpoint(for: .query).fullURL
-        let usersResponse: UserList = try await api.makeAuthenticatedPost(endpoint: endpoint).get()
+        let endpoint = await api.endpoint(for: .query).fullURL
+        let usersResponse: UserList = try await api.makeAuthenticatedPost(endpoint: endpoint)
         return usersResponse.userInfo
     }
 
     public func deleteUser(uid: String) async throws {
-        let endpoint = api.endpoint(for: .delete).fullURL
+        let endpoint = await api.endpoint(for: .delete).fullURL
         let _: EmptyResponse = try await api.makeAuthenticatedPost(
             endpoint: endpoint,
             body: UserRequest(localId: uid)
-        ).get()
+        )
+    }
+}
+
+extension JWTKeyCollection {
+    @discardableResult
+    public func use(jwks: JWKS) throws -> Self {
+        return try self.add(jwks: jwks)
     }
 }
 

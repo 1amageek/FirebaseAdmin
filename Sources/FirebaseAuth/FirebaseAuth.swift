@@ -24,11 +24,11 @@ public class FirebaseAuth {
      
      - Returns: An `AuthClient` instance initialized with the default `FirebaseApp` instance.
      */
-    public static func auth(app: FirebaseApp = FirebaseApp.app) throws -> AuthClient {
+    public static func auth(app: FirebaseApp = FirebaseApp.app) async throws -> AuthClient {
         guard let serviceAccount = app.serviceAccount else {
             throw NSError(domain: "ServiceAccountError", code: 500, userInfo: [NSLocalizedDescriptionKey: "Service Account is not initialized"])
         }
-        let authClient = AuthClient(serviceAccount: serviceAccount)
+        let authClient = await AuthClient(serviceAccount: serviceAccount)
         return authClient
     }
 }

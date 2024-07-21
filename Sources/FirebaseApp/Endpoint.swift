@@ -7,8 +7,7 @@
 
 import Foundation
 
-public struct FirebaseEndpoint {
-    
+public struct FirebaseEndpoint: Sendable {
     let baseURL: String
     let path: String
     
@@ -62,16 +61,16 @@ public struct FirebaseEndpoint {
 
 extension FirebaseAPIClient {
     public func endpoint(for auth: FirebaseEndpoint.Auth) -> FirebaseEndpoint {
-        guard let serviceAccount = serviceAccount else {
-            fatalError("Service account not set")
+        guard let projectId = projectId else {
+            fatalError("Project ID not available")
         }
-        return FirebaseEndpoint.auth(auth, projectID: serviceAccount.projectId)
+        return FirebaseEndpoint.auth(auth, projectID: projectId)
     }
     
     public func endpoint(for messages: FirebaseEndpoint.Messages) -> FirebaseEndpoint {
-        guard let serviceAccount = serviceAccount else {
-            fatalError("Service account not set")
+        guard let projectId = projectId else {
+            fatalError("Project ID not available")
         }
-        return FirebaseEndpoint.messages(messages, projectID: serviceAccount.projectId)
+        return FirebaseEndpoint.messages(messages, projectID: projectId)
     }
 }

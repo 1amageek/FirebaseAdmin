@@ -9,11 +9,11 @@ import Foundation
 import AnyCodable
 import JWTKit
 
-public struct UserList: Codable {
+public struct UserList: Codable, Sendable {
     public let userInfo: [UserRecord]
 }
 
-public struct UserRecord: Codable {
+public struct UserRecord: Codable, Sendable{
     public let localID: String
     public let email, displayName: String?
     public let photoURL: String?
@@ -31,7 +31,7 @@ public struct UserRecord: Codable {
 
 
 // TODO: This could probably be filled out more.
-public struct FirebaseContext: Codable {
+public struct FirebaseContext: Codable, Sendable {
     enum CodingKeys: String, CodingKey {
         case signInProvider = "sign_in_provider"
         case tenant, identities
@@ -42,7 +42,7 @@ public struct FirebaseContext: Codable {
     public let identities: [String: AnyCodable?]
 }
 
-public struct FirebaseJWTPayload: JWTPayload {
+public struct FirebaseJWTPayload: JWTPayload, Sendable {
     enum CodingKeys: String, CodingKey {
         case issuer = "iss"
         case subject = "sub"
@@ -76,21 +76,21 @@ public struct FirebaseJWTPayload: JWTPayload {
     public let firebase: FirebaseContext
     
     // https://firebase.google.com/docs/auth/admin/verify-id-tokens
-    public func verify(using signer: JWTSigner) throws {
+    public func verify(using signer: some JWTAlgorithm) throws {
         guard subject.value != "" else {
-            throw JWTError.claimVerificationFailure(name: "sub", reason: "Subject claim cannot be empty.")
+            throw JWTError.claimVerificationFailure(failedClaim: subject, reason: "Subject claim cannot be empty.")
         }
         
         guard issuedAt.value < Date() else {
-            throw JWTError.claimVerificationFailure(name: "iat", reason: "Issued at claim must be in the past.")
+            throw JWTError.claimVerificationFailure(failedClaim: issuedAt, reason: "Issued at claim must be in the past.")
         }
         
         guard authTime < Date() else {
-            throw JWTError.claimVerificationFailure(name: "auth_time", reason: "Auth time claim must be in the past.")
+            throw JWTError.claimVerificationFailure(failedClaim: expirationAt, reason: "Auth time claim must be in the past.")
         }
         
         guard expirationAt.value > Date() else {
-            throw JWTError.claimVerificationFailure(name: "exp", reason: "Token expired at \(expirationAt.value)")
+            throw JWTError.claimVerificationFailure(failedClaim: expirationAt, reason: "Token expired at \(expirationAt.value)")
         }
         
         try expirationAt.verifyNotExpired()
@@ -105,11 +105,11 @@ struct UserRequest: Codable {
     let localId: String
 }
 
-public struct LookupResponse: Codable {
+public struct LookupResponse: Codable, Sendable {
     public let users: [FirebaseUser]?
 }
 
-public struct FirebaseUser: Codable {
+public struct FirebaseUser: Codable, Sendable {
     public let localId: String
     public let email: String?
     public let emailVerified: Bool?
@@ -128,7 +128,7 @@ public struct FirebaseUser: Codable {
     public let tenantId: String?
 }
 
-public struct ProviderUserInfo: Codable {
+public struct ProviderUserInfo: Codable, Sendable {
     public let providerId: String?
     public let federatedId: String?
     public let email: String?
