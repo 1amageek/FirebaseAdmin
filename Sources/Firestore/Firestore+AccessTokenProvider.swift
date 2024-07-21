@@ -20,7 +20,7 @@ struct AccessTokenPayload: JWTPayload {
     var exp: ExpirationClaim
     var scope: String
 
-    func verify(using signer: JWTSigner) throws {
+    func verify(using signer: some JWTAlgorithm) throws {
         try self.exp.verifyNotExpired()
     }
 }
@@ -37,7 +37,7 @@ public class AccessTokenProvider: FirestoreAPI.AccessTokenProvider {
 
     private let serviceAccount: ServiceAccount
 
-    private let signer: JWTSigner
+    private let signer: JWTKeyCollection
 
     public var scope: FirestoreAPI.AccessScope { Firestore.Scope() }
 
@@ -47,8 +47,7 @@ public class AccessTokenProvider: FirestoreAPI.AccessTokenProvider {
 
     public init(serviceAccount: ServiceAccount) throws {
         self.serviceAccount = serviceAccount
-        let privateKey = try RSAKey.private(pem: serviceAccount.privateKeyPem)
-        self.signer = JWTSigner.rs256(key: privateKey)
+        self.signer = JWTKeyCollection()
     }
 
     /**
@@ -78,8 +77,9 @@ public class AccessTokenProvider: FirestoreAPI.AccessTokenProvider {
             exp: ExpirationClaim(value: Date(timeIntervalSinceNow: expirationDuration)),
             scope: scope.value
         )
-
-        let token = try signer.sign(jwt)
+        let privateKey = try Insecure.RSA.PrivateKey(pem: serviceAccount.privateKeyPem)
+        await signer.add(rsa: privateKey, digestAlgorithm: .sha256)
+        let token = try await signer.sign(jwt)
         let accessToken = try await requestAccessToken(signedJwt: token)
         return accessToken
     }

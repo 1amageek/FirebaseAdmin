@@ -13,28 +13,38 @@ import JWTKit
 import NIOFoundationCompat
 import NIO
 
-public struct FirebaseError: Codable {
+public struct FirebaseError: Codable, Sendable {
     public let code: Int?
     public let message: String?
 }
 
-public struct FirebaseErrorResponse: Codable, Error {
+public struct FirebaseErrorResponse: Codable, Error, Sendable {
     public let error: FirebaseError
 }
 
-public enum FirebaseAPIError: Error {
+public enum FirebaseAPIError: Error, Sendable {
     case serviceAccountNotSet
     case missingResponseBody
     case invalidResponse
 }
 
-public class FirebaseAPIClient {
+@globalActor public actor FirebaseActor {
+    public static let shared = FirebaseActor()
+    private init() {}
+}
+
+@FirebaseActor
+public class FirebaseAPIClient: Sendable {
     
-    let httpClient: HTTPClient
-    var serviceAccount: ServiceAccount?
-    let endpoint: FirebaseEndpoint
-    let decoder: JSONDecoder
-    let eventLoopGroup: EventLoopGroup
+    private let httpClient: HTTPClient
+    private var serviceAccount: ServiceAccount?
+    private let endpoint: FirebaseEndpoint
+    private let decoder: JSONDecoder
+    private let eventLoopGroup: EventLoopGroup
+    
+    public var projectId: String? {
+        serviceAccount?.projectId
+    }
     
     public init(serviceAccount: ServiceAccount? = nil) {
         self.eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
@@ -48,13 +58,13 @@ public class FirebaseAPIClient {
         try? httpClient.shutdown()
     }
     
-    public func throwIfError(response: HTTPClient.Response, body: ByteBuffer) throws {
+    private func throwIfError(response: HTTPClient.Response, body: ByteBuffer) throws {
         if let error = try? JSONDecoder().decode(FirebaseErrorResponse.self, from: body) {
             throw error
         }
     }
     
-    public func decodeOrThrow<T: Codable>(response: HTTPClient.Response, body: ByteBuffer) throws -> T {
+    private func decodeOrThrow<T: Codable>(response: HTTPClient.Response, body: ByteBuffer) throws -> T {
         if let decoded = try? JSONDecoder().decode(T.self, from: body) {
             return decoded
         }
@@ -62,112 +72,84 @@ public class FirebaseAPIClient {
         throw NSError(domain: "FirebaseAPIClient", code: 0, userInfo: [NSLocalizedDescriptionKey: "Could not parse response"])
     }
     
-    public func makeAuthenticatedPost<T: Codable>(endpoint: String, body: Codable? = nil) -> EventLoopFuture<T> {
-        return getOAuthToken().flatMap { token in
-            do {
-                var request = try HTTPClient.Request(url: endpoint, method: .POST)
-                request.headers.add(name: "Content-Type", value: "application/json")
-                request.headers.add(name: "Authorization", value: "Bearer \(token.access_token)")
-                if let body = body {
-                    request.body = .data(try JSONEncoder().encode(body))
-                }
-                
-                return self.httpClient.execute(request: request).flatMap { response in
-                    guard var byteBuffer = response.body else {
-                        return self.httpClient.eventLoopGroup.next().makeFailedFuture(FirebaseAPIError.missingResponseBody)
-                    }
-                    let responseData = byteBuffer.readData(length: byteBuffer.readableBytes)!
-                    
-                    do {
-                        guard response.status == .ok else {
-                            return self.httpClient.eventLoopGroup.next().makeFailedFuture(try self.decoder.decode(FirebaseErrorResponse.self, from: responseData))
-                        }
-                        return self.httpClient.eventLoopGroup.next().makeSucceededFuture(try self.decoder.decode(T.self, from: responseData))
-                    } catch {
-                        return self.httpClient.eventLoopGroup.next().makeFailedFuture(error)
-                    }
-                }
-            } catch {
-                return self.httpClient.eventLoopGroup.next().makeFailedFuture(error)
-            }
-        }
-    }
-    
-    public func makeAuthenticatedPost(endpoint: String, body: Encodable? = nil) -> EventLoopFuture<Data> {
-        return getOAuthToken().flatMap { token in
-            do {
-                var request = try HTTPClient.Request(url: endpoint, method: .POST)
-                request.headers.add(name: "Content-Type", value: "application/json")
-                request.headers.add(name: "Authorization", value: "Bearer \(token.access_token)")
-                if let body = body {
-                    request.body = .data(try JSONEncoder().encode(body))
-                }
-                
-                return self.httpClient.execute(request: request).flatMap { response in
-                    guard var byteBuffer = response.body else {
-                        return self.httpClient.eventLoopGroup.next().makeFailedFuture(FirebaseAPIError.missingResponseBody)
-                    }
-                    let responseData = byteBuffer.readData(length: byteBuffer.readableBytes)!
-                    
-                    if response.status == .ok {
-                        return self.httpClient.eventLoopGroup.next().makeSucceededFuture(responseData)
-                    } else {
-                        do {
-                            let errorResponse = try self.decoder.decode(FirebaseErrorResponse.self, from: responseData)
-                            return self.httpClient.eventLoopGroup.next().makeFailedFuture(errorResponse)
-                        } catch {
-                            return self.httpClient.eventLoopGroup.next().makeFailedFuture(error)
-                        }
-                    }
-                }
-            } catch {
-                return self.httpClient.eventLoopGroup.next().makeFailedFuture(error)
-            }
-        }
-    }
-    
-    private func getOAuthToken() -> EventLoopFuture<OAuthTokenResponse> {
-        // Implement token caching logic here if needed
-        return getNewOAuthToken()
-    }
-    
-    private func getNewOAuthToken() -> EventLoopFuture<OAuthTokenResponse> {
-        guard let serviceAccount = serviceAccount else {
-            return httpClient.eventLoopGroup.next().makeFailedFuture(FirebaseAPIError.serviceAccountNotSet)
+    public func makeAuthenticatedPost<T: Codable>(endpoint: String, body: (any Codable)? = nil) async throws -> T {
+        let token = try await getOAuthToken()
+        var request = try HTTPClient.Request(url: endpoint, method: .POST)
+        request.headers.add(name: "Content-Type", value: "application/json")
+        request.headers.add(name: "Authorization", value: "Bearer \(token.access_token)")
+        if let body = body {
+            request.body = .data(try JSONEncoder().encode(body))
         }
         
-        do {
-            let scopes = "https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/datastore https://www.googleapis.com/auth/devstorage.full_control https://www.googleapis.com/auth/firebase https://www.googleapis.com/auth/identitytoolkit https://www.googleapis.com/auth/userinfo.email"
-            
-            let privateKey = try RSAKey.private(pem: serviceAccount.privateKeyPem)
-            let signers = JWTSigners()
-            signers.use(.rs256(key: privateKey), kid: JWKIdentifier(string: serviceAccount.privateKeyId))
-            
-            let jwt = try signers.sign(FirebaseAdminAuthPayload(
-                scope: scopes,
-                issuer: .init(stringLiteral: serviceAccount.clientEmail),
-                audience: .init(stringLiteral: serviceAccount.tokenUri))
-            )
-            
-            var request = try HTTPClient.Request(url: serviceAccount.tokenUri, method: .POST)
-            request.headers.add(name: "Content-Type", value: "application/x-www-form-urlencoded")
-            request.body = .string("grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=\(jwt)")
-            
-            return httpClient.execute(request: request).flatMap { response in
-                guard var byteBuffer = response.body else {
-                    return self.httpClient.eventLoopGroup.next().makeFailedFuture(FirebaseAPIError.missingResponseBody)
-                }
-                let responseData = byteBuffer.readData(length: byteBuffer.readableBytes)!
-                
-                do {
-                    return self.httpClient.eventLoopGroup.next().makeSucceededFuture(try self.decoder.decode(OAuthTokenResponse.self, from: responseData))
-                } catch {
-                    return self.httpClient.eventLoopGroup.next().makeFailedFuture(error)
-                }
-            }
-        } catch {
-            return httpClient.eventLoopGroup.next().makeFailedFuture(error)
+        let response = try await httpClient.execute(request: request).get()
+        guard var byteBuffer = response.body else {
+            throw FirebaseAPIError.missingResponseBody
         }
+        let responseData = byteBuffer.readData(length: byteBuffer.readableBytes)!
+        
+        guard response.status == .ok else {
+            throw try decoder.decode(FirebaseErrorResponse.self, from: responseData)
+        }
+        return try decoder.decode(T.self, from: responseData)
+    }
+    
+    public func makeAuthenticatedPost(endpoint: String, body: (any Encodable)? = nil) async throws -> Data {
+        let token = try await getOAuthToken()
+        var request = try HTTPClient.Request(url: endpoint, method: .POST)
+        request.headers.add(name: "Content-Type", value: "application/json")
+        request.headers.add(name: "Authorization", value: "Bearer \(token.access_token)")
+        if let body = body {
+            request.body = .data(try JSONEncoder().encode(body))
+        }
+        
+        let response = try await httpClient.execute(request: request).get()
+        guard var byteBuffer = response.body else {
+            throw FirebaseAPIError.missingResponseBody
+        }
+        let responseData = byteBuffer.readData(length: byteBuffer.readableBytes)!
+        
+        if response.status == .ok {
+            return responseData
+        } else {
+            throw try decoder.decode(FirebaseErrorResponse.self, from: responseData)
+        }
+    }
+    
+    private func getOAuthToken() async throws -> OAuthTokenResponse {
+        // Implement token caching logic here if needed
+        return try await getNewOAuthToken()
+    }
+    
+    private func getNewOAuthToken() async throws -> OAuthTokenResponse {
+        guard let serviceAccount = serviceAccount else {
+            throw FirebaseAPIError.serviceAccountNotSet
+        }
+        
+        let scopes = "https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/datastore https://www.googleapis.com/auth/devstorage.full_control https://www.googleapis.com/auth/firebase https://www.googleapis.com/auth/identitytoolkit https://www.googleapis.com/auth/userinfo.email"
+        
+        let privateKey = try Insecure.RSA.PrivateKey(pem: serviceAccount.privateKeyPem)
+        let keyCollection = await JWTKeyCollection()
+            .add(rsa: privateKey, digestAlgorithm: .sha256, kid: JWKIdentifier(string: serviceAccount.privateKeyId))
+        
+        let payload = FirebaseAdminAuthPayload(
+            scope: scopes,
+            issuer: .init(stringLiteral: serviceAccount.clientEmail),
+            audience: .init(stringLiteral: serviceAccount.tokenUri)
+        )
+        
+        let jwt = try await keyCollection.sign(payload, kid: JWKIdentifier(string: serviceAccount.privateKeyId))
+        
+        var request = try HTTPClient.Request(url: serviceAccount.tokenUri, method: .POST)
+        request.headers.add(name: "Content-Type", value: "application/x-www-form-urlencoded")
+        request.body = .string("grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=\(jwt)")
+        
+        let response = try await httpClient.execute(request: request).get()
+        guard var byteBuffer = response.body else {
+            throw FirebaseAPIError.missingResponseBody
+        }
+        let responseData = byteBuffer.readData(length: byteBuffer.readableBytes)!
+        
+        return try decoder.decode(OAuthTokenResponse.self, from: responseData)
     }
 }
 
@@ -200,7 +182,7 @@ struct FirebaseAdminAuthPayload: JWTPayload {
     var audience: AudienceClaim
     var expiration: ExpirationClaim = .init(value: Date().addingTimeInterval(.seconds(1000)))
     
-    func verify(using signer: JWTSigner) throws {
+    func verify(using signer: some JWTAlgorithm) throws {
         try self.expiration.verifyNotExpired()
     }
 }

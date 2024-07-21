@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "FirebaseAdmin",
     platforms: [
-        .iOS(.v15), .macOS(.v10_15)
+        .iOS(.v15), .macOS(.v13)
     ],
     products: [
         .library(
@@ -29,7 +29,7 @@ let package = Package(
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.21.2"),
         .package(url: "https://github.com/apple/swift-nio.git", from: "2.68.0"),
         .package(url: "https://github.com/1amageek/FirebaseAPI.git", branch: "main"),
-        .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.13.4"),
+        .package(url: "https://github.com/vapor/jwt-kit.git", from: "5.0.0-rc.1"),
         .package(url: "https://github.com/Flight-School/AnyCodable", from: "0.6.7")
     ],
     targets: [

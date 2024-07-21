@@ -10,11 +10,11 @@ import AsyncHTTPClient
 @_exported import FirebaseApp
 
 public class FirebaseMessaging {
-    public static func getMessaging(app: FirebaseApp = FirebaseApp.app) throws -> MessagingClient {
+    public static func getMessaging(app: FirebaseApp = FirebaseApp.app) async throws -> MessagingClient {
         guard let serviceAccount = app.serviceAccount else {
             throw NSError(domain: "ServiceAccountError", code: 500, userInfo: [NSLocalizedDescriptionKey: "Service Account is not initialized"])
         }
-        let messagingClient = MessagingClient(serviceAccount: serviceAccount)
+        let messagingClient = await MessagingClient(serviceAccount: serviceAccount)
         return messagingClient
     }
 }

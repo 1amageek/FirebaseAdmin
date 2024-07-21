@@ -1,6 +1,6 @@
 //
 //  AppCheck.swift
-//  
+//
 //
 //  Created by Norikazu Muramoto on 2023/05/11.
 //
@@ -17,11 +17,11 @@ public enum AppCheckError: Error {
 }
 
 public class AppCheck {
-
+    
     private let jwksURL: String = "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com"
-
+    
     private var jwks: JWKS?
-
+    
     public init(publicKey: String? = nil) {
         if let publicKey, let data = publicKey.data(using: .utf8) {
             do {
@@ -31,42 +31,47 @@ public class AppCheck {
             }
         }
     }
-
+    
     func fetch(client: HTTPClient) async throws -> JWKS {
         let response = try await client.get(url: jwksURL).get()
         return try JSONDecoder().decode(JWKS.self, from: response.body!)
     }
-
-    public func validate(token: String) throws -> Bool {
+    
+    public func validate(token: String) async throws -> Bool {
         if jwks == nil {
             throw AppCheckError.invalidPublicKey
         }
         guard let jwks else {
             return false
         }
-        let signers: JWTSigners = JWTSigners()
-        try signers.use(jwks: jwks)
-        _ = try signers.verify(token, as: Payload.self)
+        let signers: JWTKeyCollection = JWTKeyCollection()
+        
+        let jsonEncoder = JSONEncoder()
+        let jwksData = try jsonEncoder.encode(jwks)
+        let jwksJSON = String(data: jwksData, encoding: .utf8)!
+        
+        try await signers.use(jwksJSON: jwksJSON)
+        _ = try await signers.verify(token, as: Payload.self)
         return true
     }
-
+    
     public func validate(token: String, client: HTTPClient) async throws -> Bool {
         if jwks == nil {
             self.jwks = try await fetch(client: client)
         }
-        return try validate(token: token)
+        return try await validate(token: token)
     }
 }
 
 struct Payload: JWTPayload {
-
+    
     var iss: IssuerClaim
     var sub: SubjectClaim
     var aud: AudienceClaim
     var iat: IssuedAtClaim
     var exp: ExpirationClaim
-
-    func verify(using signer: JWTSigner) throws {
+    
+    func verify(using signer: some JWTAlgorithm) throws {
         try exp.verifyNotExpired()
     }
 }
