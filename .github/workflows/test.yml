@@ -9,7 +9,7 @@ on:
 jobs:
   unit-tests:
     name: Unit Tests
-    runs-on: macos-15
+    runs-on: macos-26
 
     steps:
       - name: Checkout code
@@ -26,7 +26,7 @@ jobs:
 
   integration-tests:
     name: Integration Tests
-    runs-on: macos-15
+    runs-on: macos-26
     # Only run integration tests on push to main or when PR is from the same repository
     # This prevents exposing secrets to forked PRs
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
